@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { canReview } from "@/lib/role";
+import { siteCenter } from "@/lib/maps";
+import OpenInMaps from "@/components/OpenInMaps";
 import BeforeAfter from "@/components/BeforeAfter";
 
 const NEXT_ALLOWED: Record<string, string[]> = {
@@ -14,6 +16,7 @@ const NEXT_ALLOWED: Record<string, string[]> = {
 
 export default function AlertDrawer({ alertId, onClose, onChanged }: { alertId: string | null; onClose: () => void; onChanged: () => void }) {
   const [alert, setAlert] = useState<any>(null);
+  const [site, setSite] = useState<any>(null);
   const [detail, setDetail] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [status, setStatus] = useState("");
@@ -27,6 +30,7 @@ export default function AlertDrawer({ alertId, onClose, onChanged }: { alertId: 
     (async () => {
       const a = await api<any>(`/api/alerts/${alertId}`);
       setAlert(a);
+      try { setSite(await api<any>(`/api/sites/${a.site_id}`)); } catch { setSite(null); }
       try {
         const d = await api<any>(`/api/analysis/${a.analysis_id}/results`);
         setDetail(d.result);
@@ -84,6 +88,7 @@ export default function AlertDrawer({ alertId, onClose, onChanged }: { alertId: 
             <p className="text-xs text-neutral-500 font-mono">{alert?.id} · {alert?.created_at?.slice(0, 10)}</p>
             <h2 className="text-lg font-semibold">{alert?.site_id}</h2>
             <p><span className={`badge-${(alert?.level || "gray").toLowerCase()}`}>{alert?.level}</span> <span className="badge-gray">{alert?.review_status}</span> {(detail?.synthetic ?? alert?.synthetic) ? <span className="badge-gray">synthetic demo</span> : <span className="badge-green">real pixels</span>}</p>
+            {(() => { const c = site?.geometry ? siteCenter(site.geometry) : null; return c ? <p className="mt-1"><OpenInMaps lat={c.lat} lon={c.lon} /></p> : null; })()}
           </div>
           <button className="btn" onClick={onClose}>Close</button>
         </div>

@@ -2,10 +2,12 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { getRole, canAdmin } from "@/lib/role";
+import { MAP_PROVIDERS, getMapProvider, setMapProvider, type MapProviderId } from "@/lib/maps";
 export default function Settings() {
   const [t, setT] = useState<any>(null);
   const [admin, setAdmin] = useState(false);
-  useEffect(() => { setAdmin(canAdmin(getRole())); api<any>("/api/thresholds").then(setT).catch(() => {}); }, []);
+  const [mp, setMp] = useState<MapProviderId>("osm");
+  useEffect(() => { setAdmin(canAdmin(getRole())); setMp(getMapProvider()); api<any>("/api/thresholds").then(setT).catch(() => {}); }, []);
   return (
     <div className="space-y-4"><h2 className="text-2xl font-bold">Settings</h2>
       <p className="text-sm text-neutral-600">Detection thresholds by site type — starting values, tune against reviewed examples. {t?.algo && <span className="font-mono">Algo: {t.algo}</span>}</p>
@@ -22,6 +24,15 @@ export default function Settings() {
           ))}</tbody></table></div>
       <div className="card"><h3 className="font-semibold mb-1">Safeguards</h3>
         <p className="text-sm">Priority labels are rule-based — no illegality probability is calculated. Review states are controlled by authorised users and stored apart from algorithm output. The role switch is a demo stand-in, not authentication.</p></div>
+      <div className="card"><h3 className="font-semibold mb-2">Map provider — “Open in Maps” links</h3>
+        <p className="text-sm text-neutral-600 mb-2">Every alert links its site center to one of these. Stored only in this browser.</p>
+        {(Object.keys(MAP_PROVIDERS) as MapProviderId[]).map((id) => (
+          <label key={id} className="flex gap-2 items-center text-sm py-1">
+            <input type="radio" name="maps" checked={mp === id} onChange={() => { setMp(id); setMapProvider(id); }} />
+            <b>{MAP_PROVIDERS[id].name}</b>
+            <a className="text-xs text-neutral-500 underline" href={MAP_PROVIDERS[id].url(23.83, 90.345, 14)} target="_blank" rel="noopener noreferrer">try Dhaka</a>
+          </label>
+        ))}</div>
     </div>
   );
 }

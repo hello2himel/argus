@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { api, levelBadge } from "@/lib/api";
+import { siteCenter } from "@/lib/maps";
+import OpenInMaps from "@/components/OpenInMaps";
 import dynamic from "next/dynamic";
 import AlertDrawer from "@/components/AlertDrawer";
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
@@ -57,11 +59,14 @@ export default function Overview() {
           <div className="card">
             <h3 className="font-semibold mb-2">Needs attention</h3>
             {needs.map((a) => (
-              <button key={a.id} className="w-full text-left flex gap-2 items-center border-b py-2 text-sm hover:bg-neutral-50" onClick={() => setOpen(a.id)}>
-                <span className={levelBadge(a.level)}>{a.level}</span>
-                <span className="flex-1"><b>{siteName(a.site_id)}</b><br /><span className="text-neutral-500 text-xs">{a.id} · {a.total_ha != null ? `${Number(a.total_ha).toFixed(1)} ha` : "—"}</span></span>
-                <span className="badge-gray">{a.review_status}</span>
-              </button>
+              <div key={a.id} className="border-b py-2">
+                <button className="w-full text-left flex gap-2 items-center text-sm hover:bg-neutral-50" onClick={() => setOpen(a.id)}>
+                  <span className={levelBadge(a.level)}>{a.level}</span>
+                  <span className="flex-1"><b>{siteName(a.site_id)}</b><br /><span className="text-neutral-500 text-xs">{a.id} · {a.total_ha != null ? `${Number(a.total_ha).toFixed(1)} ha` : "—"}</span></span>
+                  <span className="badge-gray">{a.review_status}</span>
+                </button>
+                {(() => { const g = sites.find((s) => s.id === a.site_id)?.geometry; const c = g ? siteCenter(g) : null; return c ? <span className="ml-1"><OpenInMaps lat={c.lat} lon={c.lon} /></span> : null; })()}
+              </div>
             ))}
             {needs.length === 0 && <p className="text-sm text-neutral-500">Nothing pending.</p>}
           </div>

@@ -16,6 +16,26 @@
   var toastEl = document.getElementById("toast");
   var SNAP = null;
   var F = { pri: "all", site: "all", rev: "all" };
+  /* external map providers (local preference only — no account, no tracking) */
+  var MAPS = {
+    osm: ["OpenStreetMap", function (la, lo, z) { return "https://www.openstreetmap.org/?mlat=" + la + "&mlon=" + lo + "#map=" + z + "/" + la + "/" + lo; }],
+    google: ["Google Maps", function (la, lo) { return "https://www.google.com/maps/search/?api=1&query=" + la + "," + lo; }],
+    apple: ["Apple Maps", function (la, lo, z) { return "https://maps.apple.com/?q=" + la + "," + lo + "&z=" + z; }],
+    bing: ["Bing Maps", function (la, lo, z) { return "https://www.bing.com/maps?cp=" + la + "~" + lo + "&lvl=" + z; }],
+    esri: ["Esri / ArcGIS", function (la, lo, z) { return "https://www.arcgis.com/home/webmap/viewer.html?center=" + lo + "," + la + "&level=" + z; }],
+    geohack: ["GeoHack", function (la, lo) { return "https://geohack.toolforge.org/geohack.php?params=" + la + "_N_" + lo + "_E"; }],
+  };
+  function mapPref() { try { var p = localStorage.getItem("argus-maps-provider"); return MAPS[p] ? p : "osm"; } catch (e) { return "osm"; } }
+  function mapsLink(lat, lon) {
+    var id = mapPref();
+    return '<a class="btn ghost" style="font-size:12px;padding:4px 10px" href="' + MAPS[id][1](lat.toFixed(5), lon.toFixed(5), 14) + '" target="_blank" rel="noopener">Open in Maps (' + MAPS[id][0] + ")</a>";
+  }
+  function siteCenter(g) {
+    if (!g || !g.coordinates) return null;
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    (function walk(c) { if (typeof c[0] === "number") { x0 = Math.min(x0, c[0]); y0 = Math.min(y0, c[1]); x1 = Math.max(x1, c[0]); y1 = Math.max(y1, c[1]); } else c.forEach(walk); })(g.coordinates);
+    return x0 > x1 ? null : { lon: (x0 + x1) / 2, lat: (y0 + y1) / 2 };
+  }
   var layers = { bounds: true, alerts: true };
   var map = null, layer = null, selSite = null;
 
@@ -94,6 +114,12 @@
     var tot = Math.max(1, SNAP.alerts.length);
     var seg = function (k, c) { return by[k] ? '<span class="' + c + '" style="width:' + (by[k] / tot * 100) + '%"></span>' : ""; };
     var needs = open.slice().sort(function (a, b) { return (a.level === "RED" ? 0 : 1) - (b.level === "RED" ? 0 : 1); }).slice(0, 6);
+    var needHTML = needs.length ? needs.map(function (a) {
+      var c = siteCenter(siteOf(a.site_id).geometry);
+      return '<button class="linklike" data-open="' + a.id + '"><div style="display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #eee">' + pill(a.level) +
+        '<span style="flex:1"><b>' + esc(siteOf(a.site_id).name || a.site_id) + '</b><br><span class="meta">' + a.id + ' · ' + (a.total_ha != null ? Number(a.total_ha).toFixed(1) + " ha" : "—") + "</span></span></div></button>" +
+        (c ? '<div style="padding:2px 0 6px">' + mapsLink(c.lat, c.lon) + "</div>" : "");
+    }).join("") : '<p class="meta">Nothing pending.</p>';
     var h = '<div class="row"><div><h2 class="page">Overview</h2><p class="sub">Counts are calculated from the snapshot records below. Snapshot ' + esc((SNAP.generated_at || "").slice(0, 10)) + '.</p></div></div>';
     h += '<div class="notice">' + esc(SNAP.note || "") + "</div>";
     h += '<div class="cards"><div class="card"><div class="k">Registered sites</div><div class="v">' + SNAP.sites.length + '</div></div>' +
@@ -105,10 +131,7 @@
       '<div class="maptools"><label><input type="checkbox" id="l-b" ' + (layers.bounds ? "checked" : "") + '> Boundaries</label>' +
       '<label><input type="checkbox" id="l-a" ' + (layers.alerts ? "checked" : "") + '> Alerts</label></div>' +
       '<div id="map"></div><div class="legend"><span><i style="background:#c0392b"></i>High priority</span><span><i style="background:#d48806"></i>Possible disturbance</span><span><i style="background:#1e7e34"></i>No change</span><span><i style="background:#6c757d"></i>Insufficient</span></div></div>';
-    h += '<div><div class="card"><h3>Needs attention</h3>' + (needs.length ? needs.map(function (a) {
-      return '<button class="linklike" data-open="' + a.id + '"><div style="display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #eee">' + pill(a.level) +
-        '<span style="flex:1"><b>' + esc(siteOf(a.site_id).name || a.site_id) + '</b><br><span class="meta">' + a.id + ' · ' + (a.total_ha != null ? Number(a.total_ha).toFixed(1) + " ha" : "—") + "</span></span></div></button>";
-    }).join("") : '<p class="meta">Nothing pending.</p>') + "</div>";
+    h += '<div><div class="card"><h3>Needs attention</h3>' + needHTML + "</div>";
     h += '<div class="card" style="margin-top:12px"><h3>Alert distribution</h3><div class="distbar">' + seg("RED", "r") + seg("AMBER", "a") + seg("GREEN", "g") + seg("GRAY", "z") + "</div>" +
       '<p class="meta" style="margin-top:6px">Green does not certify compliance. Gray means the site could not be assessed.</p></div></div></div>';
     h += '<div class="card"><h3>Recent analysis activity</h3><table><tbody>' + SNAP.analyses.slice(0, 6).map(function (r) {
@@ -158,11 +181,13 @@
       '<label>Site<select id="f-site"><option value="all">All sites</option>' + SNAP.sites.map(function (s) { return '<option value="' + s.id + '">' + esc(s.name) + "</option>"; }).join("") + "</select></label>" +
       '<label>Review status<select id="f-rev"><option value="all">All statuses</option><option>UNVERIFIED</option><option>UNDER_REVIEW</option><option>CONFIRMED_DISTURBANCE</option><option>DISMISSED</option><option>REQUIRES_FIELD_INSPECTION</option></select></label></div>';
     h += (list.length ? list.map(function (a) {
+      var c = siteCenter(siteOf(a.site_id).geometry);
       return '<button class="linklike" data-open="' + a.id + '"><div class="alrow"><span>' + pill(a.level) + "</span>" +
         "<span><b>" + esc(siteOf(a.site_id).name || a.site_id) + "</b><br><span class='meta mono'>" + a.id + (a.synthetic ? " · synthetic" : " · real") + "</span></span>" +
         "<span class='mono'>" + (a.total_ha != null ? Number(a.total_ha).toFixed(1) + " ha" : "—") + "</span>" +
         '<span><span class="tag">' + esc(a.review_status || "UNVERIFIED") + "</span></span>" +
-        '<span class="meta hide-sm">' + esc((a.created_at || "").slice(0, 10)) + "</span></div></button>";
+        '<span class="meta hide-sm">' + esc((a.created_at || "").slice(0, 10)) + "</span></div></button>" +
+        (c ? '<div style="padding:0 8px 8px">' + mapsLink(c.lat, c.lon) + "</div>" : "");
     }).join("") : '<div class="empty"><b>No alerts match these filters</b>Clear a filter to see more.</div>') + "</div>";
     return h;
   }
@@ -192,7 +217,13 @@
   }
 
   function vSettings() {
-    return '<div class="row"><div><h2 class="page">Settings</h2><p class="sub">Detection thresholds by site type — starting values (read-only here; tuned in the full app). Algo vrx1-1.0.0.</p></div></div>' +
+    var pref = mapPref();
+    var radios = Object.keys(MAPS).map(function (id) {
+      return '<label style="display:flex;gap:8px;align-items:center;font-size:13px;padding:4px 0"><input type="radio" name="maps" value="' + id + '"' + (pref === id ? " checked" : "") + "> <b>" + MAPS[id][0] + "</b> " +
+        '<a href="' + MAPS[id][1](23.83, 90.345, 14) + '" target="_blank" rel="noopener" style="font-size:12px">try Dhaka</a></label>';
+    }).join("");
+    return '<div class="row"><div><h2 class="page">Settings</h2><p class="sub">Detection thresholds by site type — starting values (read-only here). Algo vrx1-1.0.0.</p></div></div>' +
+      '<div class="card"><h3>Map provider — “Open in Maps” links</h3><p class="meta">Every alert links its site center to one of these. Stored only in this browser.</p><div id="map-prefs">' + radios + "</div></div>" +
       '<div class="card"><h3>Detection thresholds</h3><table><thead><tr><th>Site type</th><th>NDVI drop</th><th>Min patch (ha)</th><th>Min scenes</th><th>Max cloud %</th></tr></thead><tbody>' +
       THRESHOLDS.map(function (r) { return "<tr><td>" + r[0] + "</td><td class='mono'>" + r[1] + "</td><td class='mono'>" + r[2] + "</td><td class='mono'>" + r[3] + "</td><td class='mono'>" + r[4] + "</td></tr>"; }).join("") +
       "</tbody></table></div>" +
@@ -225,7 +256,8 @@
     var hist = (SNAP.reviews || []).filter(function (e) { return e.alert_id === id; });
     overlay.innerHTML = '<div class="scrim" id="scrim"></div><aside class="drawer" role="dialog" aria-modal="true" aria-label="Alert ' + esc(id) + '">' +
       '<div class="drawer-h"><div><p class="meta mono">' + esc(a.id) + " · " + esc((a.created_at || "").slice(0, 10)) + "</p><h2 class='page' style='font-size:17px'>" + esc(s.name || a.site_id) + "</h2>" +
-      '<p style="margin-top:6px">' + pill(a.level) + '<span class="tag">' + esc(a.review_status || "UNVERIFIED") + "</span>" + (a.synthetic ? ' <span class="badge syn">synthetic</span>' : ' <span class="badge real">real pixels</span>') + "</p></div>" +
+      '<p style="margin-top:6px">' + pill(a.level) + '<span class="tag">' + esc(a.review_status || "UNVERIFIED") + "</span>" + (a.synthetic ? ' <span class="badge syn">synthetic</span>' : ' <span class="badge real">real pixels</span>') + "</p>" +
+      (function () { var cc = siteCenter(s.geometry); return cc ? '<p style="margin-top:6px">' + mapsLink(cc.lat, cc.lon) + "</p>" : ""; })() + "</div>" +
       '<div><button class="btn ghost" id="d-close">Close</button></div></div>' +
       '<div class="drawer-b"><div>' + viewer + "</div>" +
       "<div><h4>Measurements</h4><div class='metrics'>" +
@@ -291,6 +323,14 @@
         var el = document.getElementById("f-" + k);
         el.value = F[k];
         el.addEventListener("change", function () { F[k] = el.value; render(); });
+      });
+    }
+    if (r === "settings") {
+      document.querySelectorAll('#map-prefs input[name="maps"]').forEach(function (el) {
+        el.addEventListener("change", function () {
+          try { localStorage.setItem("argus-maps-provider", el.value); } catch (e) {}
+          toast("Map provider: " + MAPS[el.value][0]);
+        });
       });
     }
     view.querySelectorAll("[data-open]").forEach(function (b) { b.addEventListener("click", function () { openAlert(b.dataset.open); }); });
