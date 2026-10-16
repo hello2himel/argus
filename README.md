@@ -27,15 +27,16 @@ npm install && NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev
 # open http://localhost:3000
 ```
 
-**Try it:**
+**Try it (real pixels, no key needed):**
 ```bash
-# demo math (offline, synthetic — labeled as such)
-curl -X POST 'localhost:8000/api/analysis?demo=true' -H 'Content-Type: application/json' \
-  -d '{"lon":90.345,"lat":23.83,"radius_m":1500}'
-# real catalog search (needs internet, no key)
+# real Sentinel-2 NDVI change (least-cloudy baseline vs recent COGs)
 curl -X POST 'localhost:8000/api/analysis' -H 'Content-Type: application/json' \
   -d '{"lon":90.345,"lat":23.83,"radius_m":1500}'
+# offline demo math (synthetic — labeled as such)
+curl -X POST 'localhost:8000/api/analysis?demo=true' -H 'Content-Type: application/json' \
+  -d '{"lon":90.345,"lat":23.83,"radius_m":1500}'
 ```
+Real path reads B04+B08 10 m COGs via Planetary Computer STAC (signed URLs, windowed reads), reprojects recent onto the baseline grid, and runs VRX-1 NDVI-delta + alert logic. Single scene per epoch: seasonal phenology can mimic clearing — every result carries scene IDs, dates, cloud %, and that caveat.
 
 ## What runs where
 - `backend/app/vrx1/` — VRX-1 brain (indices, masks, change, alerts). Pure numpy, tested.

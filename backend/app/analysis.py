@@ -96,8 +96,7 @@ def run_analysis(geometry: dict, baseline_start: str, baseline_end: str,
                      "note": "SYNTHETIC demo math — not satellite truth."})
         return math
 
-    # REAL path: we have real catalog metadata. Pixel math needs raster fetch;
-    # MVP ships metadata + explicit insufficient-data for pixels (Phase 2/3 adds COG reads).
+    # REAL path: real catalog metadata + real-pixel NDVI change.
     if n_base == 0 or n_recent == 0:
         return {"level": "GRAY", "total_ha": 0.0, "total_m2": 0.0, "n_events": 0,
                 "max_region_ha": 0.0, "max_delta": None, "valid_fraction": 0.0,
@@ -106,12 +105,22 @@ def run_analysis(geometry: dict, baseline_start: str, baseline_end: str,
                 "regions": [], "signals": {}, "provider": provider.name,
                 "synthetic": False, "n_baseline_scenes": n_base,
                 "n_recent_scenes": n_recent, "scenes": scenes}
-    return {"level": "GRAY", "total_ha": 0.0, "total_m2": 0.0, "n_events": 0,
-            "max_region_ha": 0.0, "max_delta": None,
-            "valid_fraction": 0.5, "n_clear": min(n_base, n_recent),
-            "thresholds": dict(CH.DEFAULTS),
-            "explanation": (f"Found {n_base} baseline + {n_recent} recent real scenes. "
-                            "Pixel-level COG download lands in Phase 3; run with ?demo=true for offline math demo."),
-            "regions": [], "signals": {}, "provider": provider.name,
-            "synthetic": False, "n_baseline_scenes": n_base,
-            "n_recent_scenes": n_recent, "scenes": scenes}
+    try:
+        from .real_pixels import compute_real_change
+        math = compute_real_change(geometry, base_res.observations,
+                                   recent_res.observations, {"max_cloud": max(max_cloud, 60.0)})
+        math.update({"provider": provider.name, "synthetic": False,
+                     "n_baseline_scenes": n_base, "n_recent_scenes": n_recent,
+                     "scenes": scenes,
+                     "note": ("Real Sentinel-2 L2A pixels (B04+B08, single least-cloudy scene per epoch). "
+                              "Seasonal phenology can mimic clearing — inspect before concluding.")})
+        return math
+    except Exception as e:
+        return {"level": "GRAY", "total_ha": 0.0, "total_m2": 0.0, "n_events": 0,
+                "max_region_ha": 0.0, "max_delta": None,
+                "valid_fraction": 0.0, "n_clear": 0,
+                "thresholds": dict(CH.DEFAULTS),
+                "explanation": f"Real-pixel read failed ({str(e)[:200]}). {n_base} baseline + {n_recent} recent scenes found; retry or widen windows.",
+                "regions": [], "signals": {}, "provider": provider.name,
+                "synthetic": False, "n_baseline_scenes": n_base,
+                "n_recent_scenes": n_recent, "scenes": scenes}
