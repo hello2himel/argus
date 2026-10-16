@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Project Argus — Quick View (precalculated)</title>
+<meta name="description" content="Static quick-viewer for Project Argus precalculated VRX-1 results. No live analysis; demo data only." />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+<header>
+  <div>
+    <h1>◉ Project Argus — Quick View</h1>
+    <p class="sub">Precalculated results only · no live analysis · brain VRX-1</p>
+  </div>
+  <div id="gen" class="gen">loading…</div>
+</header>
+
+<div id="notice" class="notice" hidden></div>
+
+<section id="cards" class="cards"></section>
+
+<section class="layout">
+  <div class="mapwrap">
+    <div id="map"></div>
+    <p class="attr">Basemap © OpenStreetMap contributors © CARTO · Polygons: demo-only, not legal cadastre.</p>
+  </div>
+  <div>
+    <div class="toolbar">
+      <label>Filter
+        <select id="filter">
+          <option value="">All levels</option>
+          <option>RED</option><option>AMBER</option>
+          <option>GREEN</option><option>GRAY</option>
+        </select>
+      </label>
+    </div>
+    <div id="list"></div>
+  </div>
+</section>
+
+<section class="prov">
+  <h2>Provenance &amp; limits</h2>
+  <pre id="prov"></pre>
+  <p>10 m pixels ≈ 100 m²; reliable only for ≥0.5 ha. GREEN ≠ legal clearance · RED ≠ proven illegality · GRAY = blind.
+  For live GPS analysis run the full stack (README). Synthetic demo math — not satellite truth.</p>
+</section>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>

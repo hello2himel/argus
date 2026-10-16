@@ -1,0 +1,464 @@
+{
+  "generated_at": "2026-10-16T18:52:32.679175+00:00",
+  "algo": "vrx1-1.0.0",
+  "synthetic": true,
+  "note": "Precalculated DEMO snapshot \u2014 synthetic math, not satellite truth. For live analysis run the full stack (see README).",
+  "baseline": {
+    "start": "2024-11-01",
+    "end": "2025-02-28"
+  },
+  "recent": {
+    "start": "2025-11-01",
+    "end": "2026-02-28"
+  },
+  "sites": [
+    {
+      "id": "site-lawachara-demo",
+      "name": "Lawachara NP Edge (forest demo)",
+      "category": "national_park",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.754,
+              24.29
+            ],
+            [
+              91.81400000000001,
+              24.29
+            ],
+            [
+              91.81400000000001,
+              24.35
+            ],
+            [
+              91.754,
+              24.35
+            ],
+            [
+              91.754,
+              24.29
+            ]
+          ]
+        ]
+      },
+      "boundary_source": "synthetic demo \u2014 not legal",
+      "legal_reference": "",
+      "priority": "high",
+      "notes": "Demo box 24.30-24.34N 91.76-91.81E. NOT a Forest Dept boundary."
+    },
+    {
+      "id": "site-chunati-demo",
+      "name": "Chunati WS Corridor (forest demo)",
+      "category": "wildlife_sanctuary",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.98,
+              21.919999999999998
+            ],
+            [
+              92.08,
+              21.919999999999998
+            ],
+            [
+              92.08,
+              22.02
+            ],
+            [
+              91.98,
+              22.02
+            ],
+            [
+              91.98,
+              21.919999999999998
+            ]
+          ]
+        ]
+      },
+      "boundary_source": "synthetic demo \u2014 not legal",
+      "legal_reference": "",
+      "priority": "medium",
+      "notes": "Elephant corridor mosaic \u2014 good for false-positive tuning."
+    },
+    {
+      "id": "site-turag-demo",
+      "name": "Turag River Buffer Ashulia (river demo)",
+      "category": "river_buffer",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              90.30499999999999,
+              23.79
+            ],
+            [
+              90.385,
+              23.79
+            ],
+            [
+              90.385,
+              23.869999999999997
+            ],
+            [
+              90.30499999999999,
+              23.869999999999997
+            ],
+            [
+              90.30499999999999,
+              23.79
+            ]
+          ]
+        ]
+      },
+      "boundary_source": "synthetic demo \u2014 not legal",
+      "legal_reference": "Writ 3503/2009 context; CS/RS + BIWTA foreshore map required for legal use",
+      "priority": "high",
+      "notes": "Foreshore/earth-filling demo. Waterline != legal boundary."
+    }
+  ],
+  "analyses": [
+    {
+      "id": "static-an-lawachara-demo",
+      "site_id": "site-lawachara-demo",
+      "status": "done",
+      "algo": "vrx1-1.0.0",
+      "demo": true,
+      "baseline": {
+        "start": "2024-11-01",
+        "end": "2025-02-28"
+      },
+      "recent": {
+        "start": "2025-11-01",
+        "end": "2026-02-28"
+      },
+      "params": {
+        "max_cloud": 30.0,
+        "seed": 7,
+        "sensitivity": "medium"
+      },
+      "result": {
+        "level": "RED",
+        "total_ha": 3.99,
+        "total_m2": 39900.0,
+        "n_events": 1,
+        "max_region_ha": 3.99,
+        "max_delta": 1.1821430563364408,
+        "valid_fraction": 1.0,
+        "n_clear": 6,
+        "thresholds": {
+          "ndvi_drop": 0.15,
+          "ndvi_base_min": 0.3,
+          "ndmi_drop": 0.12,
+          "ndbi_gain": 0.12,
+          "bsi_gain": 0.1,
+          "mndwi_gain": 0.2,
+          "min_valid_fraction": 0.4,
+          "min_clear_obs": 3,
+          "min_region_px": 50
+        },
+        "explanation": "substantial change: total=3.99ha (red\u22655.0), max_region=3.99ha (red\u22652.0)",
+        "regions": [
+          {
+            "label": 1,
+            "pixels": 399,
+            "area_m2": 39900.0,
+            "area_ha": 3.99,
+            "centroid_row": 29.50877192982456,
+            "centroid_col": 29.523809523809526,
+            "mean_delta": -0.8662351440155651,
+            "bbox": [
+              20,
+              20,
+              40,
+              40
+            ]
+          }
+        ],
+        "signals": {
+          "veg_loss_px": 390,
+          "built_gain_px": 399,
+          "bare_gain_px": 397,
+          "mean_d_ndvi": -0.08440206550687913,
+          "mean_d_ndbi": 0.07232318841511509
+        },
+        "provider": "demo-synthetic",
+        "synthetic": true,
+        "n_baseline_scenes": 2,
+        "n_recent_scenes": 2,
+        "scenes": [
+          {
+            "product_id": "SYN-BASELINE-001",
+            "acquired": "2024-11-01",
+            "cloud_cover": 5.0,
+            "provider": "demo-synthetic",
+            "synthetic": true
+          },
+          {
+            "product_id": "SYN-RECENT-001",
+            "acquired": "2025-02-28",
+            "cloud_cover": 4.0,
+            "provider": "demo-synthetic",
+            "synthetic": true
+          },
+          {
+            "product_id": "SYN-BASELINE-001",
+            "acquired": "2025-11-01",
+            "cloud_cover": 5.0,
+            "provider": "demo-synthetic",
+            "synthetic": true
+          },
+          {
+            "product_id": "SYN-RECENT-001",
+            "acquired": "2026-02-28",
+            "cloud_cover": 4.0,
+            "provider": "demo-synthetic",
+            "synthetic": true
+          }
+        ],
+        "note": "SYNTHETIC demo math \u2014 not satellite truth."
+      }
+    },
+    {
+      "id": "static-an-chunati-demo",
+      "site_id": "site-chunati-demo",
+      "status": "done",
+      "algo": "vrx1-1.0.0",
+      "demo": true,
+      "baseline": {
+        "start": "2024-11-01",
+        "end": "2025-02-28"
+      },
+      "recent": {
+        "start": "2025-11-01",
+        "end": "2026-02-28"
+      },
+      "params": {
+        "max_cloud": 30.0,
+        "seed": 21,
+        "sensitivity": "medium"
+      },
+      "result": {
+        "level": "RED",
+        "total_ha": 3.97,
+        "total_m2": 39700.0,
+        "n_events": 1,
+        "max_region_ha": 3.97,
+        "max_delta": 1.129948607281123,
+        "valid_fraction": 1.0,
+        "n_clear": 6,
+        "thresholds": {
+          "ndvi_drop": 0.15,
+          "ndvi_base_min": 0.3,
+          "ndmi_drop": 0.12,
+          "ndbi_gain": 0.12,
+          "bsi_gain": 0.1,
+          "mndwi_gain": 0.2,
+          "min_valid_fraction": 0.4,
+          "min_clear_obs": 3,
+          "min_region_px": 50
+        },
+        "explanation": "substantial change: total=3.97ha (red\u22655.0), max_region=3.97ha (red\u22652.0)",
+        "regions": [
+          {
+            "label": 1,
+            "pixels": 397,
+            "area_m2": 39700.0,
+            "area_ha": 3.97,
+            "centroid_row": 29.503778337531486,
+            "centroid_col": 29.49874055415617,
+            "mean_delta": -0.8589841380484478,
+            "bbox": [
+              20,
+              20,
+              40,
+              40
+            ]
+          }
+        ],
+        "signals": {
+          "veg_loss_px": 387,
+          "built_gain_px": 397,
+          "bare_gain_px": 390,
+          "mean_d_ndvi": -0.08343423472916947,
+          "mean_d_ndbi": 0.0701337477843768
+        },
+        "provider": "demo-synthetic",
+        "synthetic": true,
+        "n_baseline_scenes": 2,
+        "n_recent_scenes": 2,
+        "scenes": [
+          {
+            "product_id": "SYN-BASELINE-001",
+            "acquired": "2024-11-01",
+            "cloud_cover": 5.0,
+            "provider": "demo-synthetic",
+            "synthetic": true
+          },
+          {
+            "product_id": "SYN-RECENT-001",
+            "acquired": "2025-02-28",
+            "cloud_cover": 4.0,
+            "provider": "demo-synthetic",
+            "synthetic": true
+          },
+          {
+            "product_id": "SYN-BASELINE-001",
+            "acquired": "2025-11-01",
+            "cloud_cover": 5.0,
+            "provider": "demo-synthetic",
+            "synthetic": true
+          },
+          {
+            "product_id": "SYN-RECENT-001",
+            "acquired": "2026-02-28",
+            "cloud_cover": 4.0,
+            "provider": "demo-synthetic",
+            "synthetic": true
+          }
+        ],
+        "note": "SYNTHETIC demo math \u2014 not satellite truth."
+      }
+    },
+    {
+      "id": "static-an-turag-demo",
+      "site_id": "site-turag-demo",
+      "status": "done",
+      "algo": "vrx1-1.0.0",
+      "demo": true,
+      "baseline": {
+        "start": "2024-11-01",
+        "end": "2025-02-28"
+      },
+      "recent": {
+        "start": "2025-11-01",
+        "end": "2026-02-28"
+      },
+      "params": {
+        "max_cloud": 30.0,
+        "seed": 42,
+        "sensitivity": "medium"
+      },
+      "result": {
+        "level": "RED",
+        "total_ha": 3.93,
+        "total_m2": 39300.0,
+        "n_events": 1,
+        "max_region_ha": 3.93,
+        "max_delta": 1.1340103551576892,
+        "valid_fraction": 1.0,
+        "n_clear": 6,
+        "thresholds": {
+          "ndvi_drop": 0.15,
+          "ndvi_base_min": 0.3,
+          "ndmi_drop": 0.12,
+          "ndbi_gain": 0.12,
+          "bsi_gain": 0.1,
+          "mndwi_gain": 0.2,
+          "min_valid_fraction": 0.4,
+          "min_clear_obs": 3,
+          "min_region_px": 50
+        },
+        "explanation": "substantial change: total=3.93ha (red\u22655.0), max_region=3.93ha (red\u22652.0)",
+        "regions": [
+          {
+            "label": 1,
+            "pixels": 393,
+            "area_m2": 39300.0,
+            "area_ha": 3.93,
+            "centroid_row": 29.547073791348602,
+            "centroid_col": 29.46819338422392,
+            "mean_delta": -0.8600627749000573,
+            "bbox": [
+              20,
+              20,
+              40,
+              40
+            ]
+          }
+        ],
+        "signals": {
+          "veg_loss_px": 383,
+          "built_gain_px": 392,
+          "bare_gain_px": 389,
+          "mean_d_ndvi": -0.0830090893173316,
+          "mean_d_ndbi": 0.07053345331438123
+        },
+        "provider": "demo-synthetic",
+        "synthetic": true,
+        "n_baseline_scenes": 2,
+        "n_recent_scenes": 2,
+        "scenes": [
+          {
+            "product_id": "SYN-BASELINE-001",
+            "acquired": "2024-11-01",
+            "cloud_cover": 5.0,
+            "provider": "demo-synthetic",
+            "synthetic": true
+          },
+          {
+            "product_id": "SYN-RECENT-001",
+            "acquired": "2025-02-28",
+            "cloud_cover": 4.0,
+            "provider": "demo-synthetic",
+            "synthetic": true
+          },
+          {
+            "product_id": "SYN-BASELINE-001",
+            "acquired": "2025-11-01",
+            "cloud_cover": 5.0,
+            "provider": "demo-synthetic",
+            "synthetic": true
+          },
+          {
+            "product_id": "SYN-RECENT-001",
+            "acquired": "2026-02-28",
+            "cloud_cover": 4.0,
+            "provider": "demo-synthetic",
+            "synthetic": true
+          }
+        ],
+        "note": "SYNTHETIC demo math \u2014 not satellite truth."
+      }
+    }
+  ],
+  "alerts": [
+    {
+      "id": "static-al-lawachara-demo",
+      "analysis_id": "static-an-lawachara-demo",
+      "site_id": "site-lawachara-demo",
+      "level": "RED",
+      "total_ha": 3.99,
+      "explanation": "substantial change: total=3.99ha (red\u22655.0), max_region=3.99ha (red\u22652.0)",
+      "provider": "demo-synthetic",
+      "synthetic": true,
+      "review_status": "UNVERIFIED"
+    },
+    {
+      "id": "static-al-chunati-demo",
+      "analysis_id": "static-an-chunati-demo",
+      "site_id": "site-chunati-demo",
+      "level": "RED",
+      "total_ha": 3.97,
+      "explanation": "substantial change: total=3.97ha (red\u22655.0), max_region=3.97ha (red\u22652.0)",
+      "provider": "demo-synthetic",
+      "synthetic": true,
+      "review_status": "UNVERIFIED"
+    },
+    {
+      "id": "static-al-turag-demo",
+      "analysis_id": "static-an-turag-demo",
+      "site_id": "site-turag-demo",
+      "level": "RED",
+      "total_ha": 3.93,
+      "explanation": "substantial change: total=3.93ha (red\u22655.0), max_region=3.93ha (red\u22652.0)",
+      "provider": "demo-synthetic",
+      "synthetic": true,
+      "review_status": "UNVERIFIED"
+    }
+  ]
+}

@@ -47,6 +47,17 @@ curl -X POST 'localhost:8000/api/analysis' -H 'Content-Type: application/json' \
 ## Secrets
 No keys committed. Copy `.env.example` → `.env`. STAC search needs no key; SAS blob tokens auto-sign. All operator keys come from the deployer's `.env`.
 
+## Static quick-viewer (Netlify, no backend)
+
+`site/` is a zero-build static page that shows **precalculated results only** — for viewing on the go. No analysis runs there, no API keys, no server.
+
+```bash
+python3 scripts/export_static.py   # writes site/data/snapshot.json (synthetic demo, labeled)
+(cd site && python3 -m http.server 8080)  # open http://localhost:8080
+```
+
+Deploy: connect the repo to Netlify with publish dir `site` (see `netlify.toml`; build regenerates the snapshot offline). To refresh data: rerun the full stack, then `export_static.py`, commit, redeploy.
+
 ## Tests
 ```bash
 cd backend && python -m pytest tests/ -q   # 11 tests, no network

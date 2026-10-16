@@ -1,0 +1,8 @@
+# Netlify: static quick-viewer only (no backend, no functions).
+[build]
+  publish = "site"
+  # Regenerate the precalculated snapshot at deploy time (offline, no keys).
+  command = "python3 scripts/export_static.py"
+
+# Local preview of the same artifact Netlify publishes:
+#   python3 scripts/export_static.py && (cd site && python3 -m http.server 8080)
