@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { api, levelBadge } from "@/lib/api";
 import { siteCenter } from "@/lib/maps";
 import OpenInMaps from "@/components/OpenInMaps";
+import ThemeToggle from "@/components/ThemeToggle";
 import dynamic from "next/dynamic";
 import AlertDrawer from "@/components/AlertDrawer";
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
@@ -36,7 +37,7 @@ export default function Overview() {
     <div className="space-y-4">
       <div className="flex justify-between items-end flex-wrap gap-2">
         <div><h2 className="text-2xl font-bold">Overview</h2><p className="text-sm text-neutral-500">Counts are calculated from the records below.</p></div>
-        <a className="btn" href="/inspect"><i aria-hidden className="ri-add-line"></i> New inspection</a>
+        <div className="flex gap-2"><ThemeToggle /><a className="btn" href="/inspect"><i aria-hidden className="ri-add-line"></i> New inspection</a></div>
       </div>
       {err && <div className="card text-red-700">Backend unreachable: {err}.</div>}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
