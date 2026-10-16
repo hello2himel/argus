@@ -48,16 +48,22 @@ Real path reads B04+B08 10 m COGs via Planetary Computer STAC (signed URLs, wind
 ## Secrets
 No keys committed. Copy `.env.example` → `.env`. STAC search needs no key; SAS blob tokens auto-sign. All operator keys come from the deployer's `.env`.
 
-## Static quick-viewer (Netlify, no backend)
+## Static snapshot mirror (Netlify — same UI, read-only)
 
-`site/` is a zero-build static page that shows **precalculated results only** — for viewing on the go. No analysis runs there, no API keys, no server.
+The Netlify site is the **same Next.js codebase**, statically exported (`NEXT_STATIC_EXPORT=1`, `output: "export"` → `frontend/out/`).
+Special rules compiled in via `NEXT_PUBLIC_STATIC_MODE=true`:
+
+- data comes from committed `frontend/public/data/snapshot.json` (no backend),
+- Manual Inspection removed from nav and guarded,
+- role fixed to viewer (no role switch, no review writes, no site register/delete),
+- thresholds read-only, audit history read-only, drawer keeps evidence + copy.
 
 ```bash
-python3 scripts/export_static.py   # writes site/data/snapshot.json (synthetic demo, labeled)
-(cd site && python3 -m http.server 8080)  # open http://localhost:8080
+python3 scripts/export_static.py --real  # refresh snapshot + JPEG previews into frontend/public/data
+cd frontend && NEXT_STATIC_EXPORT=1 NEXT_PUBLIC_STATIC_MODE=true npm run build  # -> out/
 ```
 
-Deploy: connect the repo to Netlify with publish dir `site` (see `netlify.toml`; build regenerates the snapshot offline). To refresh data: rerun the full stack, then `export_static.py`, commit, redeploy.
+Deploy: Netlify base `frontend`, publish `out` (see `netlify.toml`).
 
 ## Tests
 ```bash
