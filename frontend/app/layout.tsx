@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <div className="flex min-h-screen">
           <aside className="w-56 shrink-0 bg-neutral-900 text-neutral-100 p-4 space-y-1 hidden md:block">
-            <h1 className="text-lg font-bold flex items-center gap-2"><span className="grid place-items-center w-7 h-7 rounded-md bg-emerald-700 text-white"><img src="/logo.svg" alt="Argus logo" className="w-[18px] h-[18px]" /></span>Project Argus</h1>
+            <h1 className="text-lg font-bold flex items-center gap-2"><span className="brand-mark"><img src="/logo.svg" alt="Argus logo" className="w-[18px] h-[18px]" /></span>Project Argus</h1>
             <p className="text-xs text-neutral-400">Brain: VRX-1 · Bangladesh</p>
             <nav className="pt-4 space-y-1">
               {NAV.map(([label, href, icon]) => (
