@@ -1,4 +1,4 @@
-<img src="frontend/public/logo.svg" alt="Project Argus logo" width="40" />
+<img src="frontend/public/logo-badge.svg" alt="Project Argus logo" width="40" />
 
 # Project Argus — satellite screening for protected land (Bangladesh). Brain: VRX-1.
 
