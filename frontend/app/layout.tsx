@@ -1,18 +1,19 @@
 import "./globals.css";
+import "remixicon/fonts/remixicon.css";
 import Link from "next/link";
 import ThemeRole from "@/components/ThemeRole";
 import { STATIC_MODE } from "@/lib/api";
 
 export const metadata = { title: "Project Argus", description: "Satellite screening for protected land — brain VRX-1" };
 
-const NAV_ALL = [
-  ["Overview", "/"],
-  ["Protected Areas", "/protected-areas"],
-  ["Manual Inspection", "/inspect"],
-  ["Alerts", "/alerts"],
-  ["Analysis History", "/history"],
-  ["Data Sources", "/data-sources"],
-  ["Settings", "/settings"],
+const NAV_ALL: [string, string, string][] = [
+  ["Overview", "/", "ri-dashboard-line"],
+  ["Protected Areas", "/protected-areas", "ri-tree-line"],
+  ["Manual Inspection", "/inspect", "ri-crosshair-line"],
+  ["Alerts", "/alerts", "ri-alarm-warning-line"],
+  ["Analysis History", "/history", "ri-history-line"],
+  ["Data Sources", "/data-sources", "ri-database-2-line"],
+  ["Settings", "/settings", "ri-settings-3-line"],
 ];
 // Static mirror rule: same pages minus Manual Inspection (it takes input).
 const NAV = STATIC_MODE ? NAV_ALL.filter(([_, href]) => href !== "/inspect") : NAV_ALL;
@@ -23,11 +24,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <div className="flex min-h-screen">
           <aside className="w-56 shrink-0 bg-neutral-900 text-neutral-100 p-4 space-y-1 hidden md:block">
-            <h1 className="text-lg font-bold">◉ Project Argus</h1>
+            <h1 className="text-lg font-bold flex items-center gap-2"><i aria-hidden className="ri-eye-line"></i>Project Argus</h1>
             <p className="text-xs text-neutral-400">Brain: VRX-1 · Bangladesh</p>
             <nav className="pt-4 space-y-1">
-              {NAV.map(([label, href]) => (
-                <Link key={href} href={href} className="block px-3 py-2 rounded hover:bg-neutral-800 text-sm">{label}</Link>
+              {NAV.map(([label, href, icon]) => (
+                <Link key={href} href={href} className="flex items-center gap-2 px-3 py-2 rounded hover:bg-neutral-800 text-sm"><i aria-hidden className={`${icon} text-base leading-none`}></i>{label}</Link>
               ))}
             </nav>
             <ThemeRole />
@@ -35,8 +36,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </aside>
           <main className="flex-1 p-4 md:p-6 max-w-6xl w-full mx-auto">
             <div className="md:hidden flex gap-2 flex-wrap mb-4">
-              {NAV.map(([label, href]) => (
-                <Link key={href} href={href} className="text-xs border rounded px-2 py-1 bg-white">{label}</Link>
+              {NAV.map(([label, href, icon]) => (
+                <Link key={href} href={href} className="text-xs border rounded px-2 py-1 bg-white flex items-center gap-1"><i aria-hidden className={icon}></i>{label}</Link>
               ))}
             </div>
             {children}

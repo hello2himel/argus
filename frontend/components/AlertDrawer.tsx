@@ -91,7 +91,7 @@ export default function AlertDrawer({ alertId, onClose, onChanged }: { alertId: 
             <p><span className={`badge-${(alert?.level || "gray").toLowerCase()}`}>{alert?.level}</span> <span className="badge-gray">{alert?.review_status}</span> {(detail?.synthetic ?? alert?.synthetic) ? <span className="badge-gray">synthetic demo</span> : <span className="badge-green">real pixels</span>}</p>
             {(() => { const c = site?.geometry ? siteCenter(site.geometry) : null; return c ? <p className="mt-1"><OpenInMaps lat={c.lat} lon={c.lon} /></p> : null; })()}
           </div>
-          <button className="btn" onClick={onClose}>Close</button>
+          <button className="btn" onClick={onClose}><i aria-hidden className="ri-close-line"></i> Close</button>
         </div>
         <div className="drawer-b">
           {err && <p className="text-sm text-red-700">{err}</p>}
@@ -146,7 +146,7 @@ export default function AlertDrawer({ alertId, onClose, onChanged }: { alertId: 
                   <label className="text-sm">Reviewer note<textarea className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="What did you check and why does the status change?" /></label>
                   <div className="flex gap-2">
                     <button className="btn" onClick={save}>Save review</button>
-                    <button className="btn" onClick={copy}>Copy evidence summary</button>
+                    <button className="btn" onClick={copy}><i aria-hidden className="ri-file-copy-line"></i> Copy evidence summary</button>
                   </div>
                 </div>
               </section>
@@ -154,7 +154,7 @@ export default function AlertDrawer({ alertId, onClose, onChanged }: { alertId: 
               <section><h3 className="font-semibold text-sm mb-1">Human review</h3>
                 <div className="card space-y-2">
                   <p className="text-sm text-neutral-500">Read-only snapshot — reviews change in the full app.</p>
-                  <button className="btn" onClick={copy}>Copy evidence summary</button>
+                  <button className="btn" onClick={copy}><i aria-hidden className="ri-file-copy-line"></i> Copy evidence summary</button>
                 </div>
               </section>
               )}
