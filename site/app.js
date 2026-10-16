@@ -11,8 +11,10 @@
   let SNAP = null;
 
   const map = L.map("map").setView([23.9, 90.4], 7);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+  // Esri World Imagery: free, keyless, needs attribution. CARTO dropped
+  // keyless use, so it renders "API KEY REQUIRED" watermarks — unusable.
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+    attribution: "Imagery &copy; Esri, Maxar, Earthstar Geographics",
     maxZoom: 19,
   }).addTo(map);
   const layer = L.geoJSON(null, {
@@ -71,6 +73,17 @@
   function showDetail(alertId) {
     const a = alertOf(alertId);
     if (!a) return;
+    // zoom to the site + highlight it so the map is actually usable
+    try {
+      const s0 = siteOf(a.site_id);
+      if (s0.geometry) {
+        map.fitBounds(L.geoJSON(s0.geometry).getBounds().pad(0.6), { animate: true });
+        layer.eachLayer((l) => {
+          const on = l.feature && l.feature.properties.alert_id === alertId;
+          l.setStyle({ weight: on ? 4 : 2, fillOpacity: on ? 0.35 : 0.12 });
+        });
+      }
+    } catch (e) {}
     const s = siteOf(a.site_id);
     const an = analysisOf(a);
     const r = an.result || {};
