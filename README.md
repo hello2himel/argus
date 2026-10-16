@@ -1,3 +1,5 @@
+<img src="frontend/public/logo.svg" alt="Project Argus logo" width="40" />
+
 # Project Argus — satellite screening for protected land (Bangladesh). Brain: VRX-1.
 
 Argus compares historical vs recent Sentinel-2 observations over registered polygons (or manual GPS + radius), computes vegetation/soil/built/water change signals, intersects them with monitoring boundaries, and emits evidence-backed **GREEN / AMBER / RED / GRAY** alerts for human review. It never declares anyone "illegal" — it screens large areas and directs field inspection.
