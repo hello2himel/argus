@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-16T19:15:33.028928+00:00",
+  "generated_at": "2026-10-16T19:23:34.338309+00:00",
   "algo": "vrx1-1.0.0",
   "synthetic": false,
   "note": "Precalculated REAL Sentinel-2 results. Single scene per epoch; seasonal phenology can mimic clearing.",
@@ -889,6 +889,17 @@
           }
         ],
         "note": "Real Sentinel-2 L2A pixels (B04+B08, single least-cloudy scene per epoch). Seasonal phenology can mimic clearing \u2014 inspect before concluding."
+      },
+      "preview": {
+        "before": "before.png",
+        "after": "after.png",
+        "overlay": "overlay.png",
+        "width": 587,
+        "height": 640,
+        "changed_px": 742,
+        "baseline": "S2B_MSIL2A_20250224T042709_R133_T46QCM_20250224T063539",
+        "recent": "S2A_MSIL2A_20251128T043231_R133_T46QCM_20251128T065809",
+        "dir": "previews/static-an-lawachara-demo"
       }
     },
     {
@@ -8331,6 +8342,17 @@
           }
         ],
         "note": "Real Sentinel-2 L2A pixels (B04+B08, single least-cloudy scene per epoch). Seasonal phenology can mimic clearing \u2014 inspect before concluding."
+      },
+      "preview": {
+        "before": "before.png",
+        "after": "after.png",
+        "overlay": "overlay.png",
+        "width": 596,
+        "height": 640,
+        "changed_px": 36790,
+        "baseline": "S2B_MSIL2A_20250211T041819_R090_T46QDK_20250211T062049",
+        "recent": "S2B_MSIL2A_20260127T041939_R090_T46QDK_20260127T061536",
+        "dir": "previews/static-an-chunati-demo"
       }
     },
     {
@@ -11013,6 +11035,17 @@
           }
         ],
         "note": "Real Sentinel-2 L2A pixels (B04+B08, single least-cloudy scene per epoch). Seasonal phenology can mimic clearing \u2014 inspect before concluding."
+      },
+      "preview": {
+        "before": "before.png",
+        "after": "after.png",
+        "overlay": "overlay.png",
+        "width": 590,
+        "height": 640,
+        "changed_px": 54132,
+        "baseline": "S2B_MSIL2A_20250214T042809_R133_T46QBM_20250214T063918",
+        "recent": "S2A_MSIL2A_20251108T043231_R133_T45QZG_20251108T064111",
+        "dir": "previews/static-an-turag-demo"
       }
     }
   ],

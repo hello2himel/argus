@@ -96,6 +96,20 @@ def main() -> None:
     }
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
+    # before/after + overlay PNGs for the static viewer (real mode only)
+    if args.real:
+        from app import previews as PV
+        pv_root = REPO / "site" / "data" / "previews"
+        for an in analyses:
+            try:
+                site_geom = next(s["geometry"] for s in sites if s["id"] == an["site_id"])
+                meta = PV.build({"geometry": site_geom, "result": an["result"]},
+                                pv_root / an["id"])
+                an["preview"] = {**meta, "dir": f"previews/{an['id']}"}
+                print(f"  preview {an['id']}: {meta['width']}x{meta['height']}, {meta['changed_px']} px")
+            except Exception as e:
+                an["preview"] = None
+                print(f"  preview {an['id']} FAILED: {str(e)[:160]}")
     out.write_text(json.dumps(snapshot, indent=2))
     print(f"wrote {out} ({len(sites)} sites, {len(alerts)} alerts)")
 

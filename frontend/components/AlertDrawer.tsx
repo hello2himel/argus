@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { canReview } from "@/lib/role";
+import BeforeAfter from "@/components/BeforeAfter";
 
 const NEXT_ALLOWED: Record<string, string[]> = {
   UNVERIFIED: ["UNDER_REVIEW"],
@@ -91,6 +92,15 @@ export default function AlertDrawer({ alertId, onClose, onChanged }: { alertId: 
           {!alert && <p className="text-sm text-neutral-500">Loading evidence…</p>}
           {alert && (
             <>
+              <section><h3 className="font-semibold text-sm mb-1">Before / after — real pixels</h3>
+                {!(detail?.synthetic ?? alert?.synthetic) ? (
+                  <BeforeAfter analysisId={alert.analysis_id}
+                    baseline={String((detail?.scenes_used?.find((s: any) => s.epoch === "baseline")?.acquired) || "").slice(0, 10)}
+                    recent={String((detail?.scenes_used?.find((s: any) => s.epoch === "recent")?.acquired) || "").slice(0, 10)} />
+                ) : (
+                  <p className="card text-sm text-neutral-500">Synthetic demo analysis — no satellite preview. Written data below is the full record.</p>
+                )}
+              </section>
               <section><h3 className="font-semibold text-sm mb-1">Measurements</h3>
                 <div className="grid grid-cols-3 gap-2 text-sm">
                   {[["Change", alert.total_ha != null ? `${Number(alert.total_ha).toFixed(1)} ha` : "—"], ["Events", detail?.n_events ?? "—"], ["Valid pixels", detail?.valid_fraction != null ? `${Math.round(detail.valid_fraction * 100)}%` : "—"], ["Mean ΔNDVI", sig.mean_d_ndvi != null ? Number(sig.mean_d_ndvi).toFixed(3) : "—"], ["Veg-loss px", sig.veg_loss_px ?? "—"], ["Scenes (catalog)", detail ? `${detail.n_baseline_scenes ?? "?"} / ${detail.n_recent_scenes ?? "?"}` : "—"]].map(([k, v]) => (

@@ -39,6 +39,15 @@ app = FastAPI(title="Project Argus", version="1.0.0",
               description="Satellite-based protected-land change screening for Bangladesh. Brain: VRX-1.")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
+try:  # preview PNG cache (before/after/overlay); absent dir is fine
+    from fastapi.staticfiles import StaticFiles
+    from pathlib import Path as _P
+    _PV = _P(__file__).resolve().parents[2] / "data" / "previews"
+    _PV.mkdir(parents=True, exist_ok=True)
+    app.mount("/previews", StaticFiles(directory=str(_PV)), name="previews")
+except Exception:
+    pass
+
 
 # ---------- schemas ----------
 class SiteIn(BaseModel):
@@ -182,6 +191,36 @@ def analysis_results(aid: str):
     if not a:
         raise HTTPException(404, "analysis not found")
     return {"analysis_id": aid, "result": a.get("result")}
+
+
+@app.get("/api/analysis/{aid}/preview")
+def analysis_preview(aid: str):
+    """Real before/after + change-overlay PNGs (cached). 422 for synthetic demos."""
+    from pathlib import Path
+    a = get_store().get_analysis(aid)
+    if not a:
+        raise HTTPException(404, "analysis not found")
+    if (a.get("result") or {}).get("synthetic"):
+        raise HTTPException(422, "synthetic demo analysis has no satellite preview; see written data")
+    from . import previews as PV
+    out_dir = Path(__file__).resolve().parents[2] / "data" / "previews" / aid
+    if not ((out_dir / "before.png").exists() and (out_dir / "after.png").exists()
+            and (out_dir / "overlay.png").exists()):
+        try:
+            meta = PV.build(a, out_dir)
+        except ValueError as e:
+            raise HTTPException(422, str(e))
+        except Exception as e:
+            raise HTTPException(502, f"preview render failed: {str(e)[:300]}")
+    else:
+        from PIL import Image
+        im = Image.open(out_dir / "before.png")
+        meta = {"before": "before.png", "after": "after.png", "overlay": "overlay.png",
+                "width": im.width, "height": im.height}
+    base = f"/previews/{aid}"
+    meta.update({"before_url": f"{base}/before.png", "after_url": f"{base}/after.png",
+                 "overlay_url": f"{base}/overlay.png"})
+    return meta
 
 
 @app.get("/api/alerts")

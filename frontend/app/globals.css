@@ -3,6 +3,15 @@
 @tailwind utilities;
 
 body { @apply bg-neutral-100 text-neutral-900; }
+
+/* Before/after swipe viewer */
+.viewer { position: relative; border-radius: 8px; overflow: hidden; background: #000; aspect-ratio: 8/5; user-select: none; }
+.viewer-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.viewer-after { pointer-events: none; }
+.viewer-divider { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; transform: translateX(-1px); box-shadow: 0 0 0 1px rgba(0,0,0,.35); pointer-events: none; }
+.viewer-divider::after { content: ""; position: absolute; top: 50%; left: 50%; width: 22px; height: 22px; margin: -11px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.35); }
+.viewer-cap-l, .viewer-cap-r { position: absolute; bottom: 8px; font: 500 11px monospace; background: rgba(8,14,15,.78); color: #fff; border-radius: 4px; padding: 3px 7px; pointer-events: none; }
+.viewer-cap-l { left: 8px; } .viewer-cap-r { right: 8px; }
 .card { @apply bg-white rounded-xl shadow-sm border p-4; }
 .btn { @apply px-4 py-2 rounded-lg bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-50; }
 .input { @apply border rounded-lg px-3 py-2 w-full bg-white; }
@@ -30,8 +39,39 @@ html[data-theme="dark"] body { background: #0c1213; color: #e4ecec; }
 html[data-theme="dark"] .card { background: #121a1b; border-color: #233031; }
 html[data-theme="dark"] .input { background: #172122; border-color: #324244; color: #e4ecec; }
 html[data-theme="dark"] .drawer { background: #121a1b; border-color: #324244; }
+html[data-theme="dark"] .drawer-h { border-color: #233031; }
+html[data-theme="dark"] .btn { background: #5cc0c6; color: #07201f; }
+html[data-theme="dark"] .btn:hover { filter: brightness(1.08); }
+html[data-theme="dark"] :where(.border, .border-b, .border-t, .divide-y > *) { border-color: #233031; }
+html[data-theme="dark"] :where(.hover\:bg-neutral-50:hover) { background: rgba(255,255,255,.05); }
+html[data-theme="dark"] .bg-neutral-100, html[data-theme="dark"] pre.bg-neutral-100 { background: #172122 !important; color: #cfd8d8; }
+html[data-theme="dark"] .text-neutral-900 { color: #e4ecec; }
+html[data-theme="dark"] .text-neutral-700 { color: #b9c4c4; }
+html[data-theme="dark"] .text-neutral-600 { color: #9aa5a6; }
+html[data-theme="dark"] .text-neutral-500 { color: #8a9c9d; }
+html[data-theme="dark"] .text-red-700 { color: #ee6a5f; }
+html[data-theme="dark"] .badge-green { background: rgba(76,178,122,.15); color: #4cb27a; }
+html[data-theme="dark"] .badge-amber { background: rgba(224,162,60,.15); color: #e0a23c; }
+html[data-theme="dark"] .badge-red { background: rgba(238,106,95,.15); color: #ee6a5f; }
+html[data-theme="dark"] .badge-gray, html[data-theme="dark"] .badge-unknown { background: rgba(141,154,156,.15); color: #8d9a9c; }
+html[data-theme="dark"] .distbar { background: #233031; }
 @media (prefers-color-scheme: dark) {
   html:not([data-theme]) body { background: #0c1213; color: #e4ecec; }
   html:not([data-theme]) .card { background: #121a1b; border-color: #233031; }
   html:not([data-theme]) .input { background: #172122; border-color: #324244; color: #e4ecec; }
+  html:not([data-theme]) .drawer { background: #121a1b; border-color: #324244; }
+  html:not([data-theme]) .drawer-h { border-color: #233031; }
+  html:not([data-theme]) .btn { background: #5cc0c6; color: #07201f; }
+  html:not([data-theme]) :where(.border, .border-b, .border-t, .divide-y > *) { border-color: #233031; }
+  html:not([data-theme]) .bg-neutral-100, html:not([data-theme]) pre.bg-neutral-100 { background: #172122 !important; color: #cfd8d8; }
+  html:not([data-theme]) .text-neutral-900 { color: #e4ecec; }
+  html:not([data-theme]) .text-neutral-700 { color: #b9c4c4; }
+  html:not([data-theme]) .text-neutral-600 { color: #9aa5a6; }
+  html:not([data-theme]) .text-neutral-500 { color: #8a9c9d; }
+  html:not([data-theme]) .text-red-700 { color: #ee6a5f; }
+  html:not([data-theme]) .badge-green { background: rgba(76,178,122,.15); color: #4cb27a; }
+  html:not([data-theme]) .badge-amber { background: rgba(224,162,60,.15); color: #e0a23c; }
+  html:not([data-theme]) .badge-red { background: rgba(238,106,95,.15); color: #ee6a5f; }
+  html:not([data-theme]) .badge-gray, html:not([data-theme]) .badge-unknown { background: rgba(141,154,156,.15); color: #8d9a9c; }
+  html:not([data-theme]) .distbar { background: #233031; }
 }

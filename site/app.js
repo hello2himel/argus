@@ -76,12 +76,26 @@
     const r = an.result || {};
     const sig = r.signals || {};
     const used = r.scenes_used || [];
+    const pv = an.preview;
+    const base = (used.find((x) => x.epoch === "baseline") || {}).acquired || "";
+    const recent = (used.find((x) => x.epoch === "recent") || {}).acquired || "";
+    const viewer = pv
+      ? `<h3>Before / after — real pixels</h3><div class="viewer"><img id="v-b" src="./data/${pv.dir}/before.png" alt="Baseline true colour">` +
+        `<img id="v-a" src="./data/${pv.dir}/after.png" alt="Recent true colour" style="clip-path:inset(0 0 0 50%)">` +
+        `<img id="v-o" src="./data/${pv.dir}/overlay.png" alt="Marked change pixels" style="clip-path:inset(0 0 0 50%)">` +
+        `<div class="viewer-divider" id="v-d" style="left:50%"></div>` +
+        `<span class="viewer-cap-l">BEFORE · ${esc(String(base).slice(0, 10))}</span>` +
+        `<span class="viewer-cap-r">AFTER · ${esc(String(recent).slice(0, 10))}</span></div>` +
+        `<input id="v-s" type="range" min="0" max="100" value="50" style="width:100%" aria-label="Comparison position">` +
+        `<div class="meta"><label><input id="v-m" type="checkbox" checked> marked changes (${Number(pv.changed_px || 0).toLocaleString()} px)</label>` +
+        ` · true colour · 10 m native · red = vegetation-loss pixels</div>`
+      : `<p class="meta">No satellite preview (synthetic demo). Written data below is the full record.</p>`;
     const sigRows = Object.entries(sig).filter(([k]) => k !== "grid_shape")
       .map(([k, v]) => `<div><span>${esc(k)}</span><b class="mono">${esc(typeof v === "number" ? (Math.abs(v) < 10 ? v.toFixed(3) : v.toLocaleString()) : String(v ?? "—"))}</b></div>`).join("");
     detail.innerHTML =
       `<div class="alert ${esc(a.level)}"><div><span class="badge ${esc(a.level)}">${esc(a.level)}</span> <b>${esc(s.name || "")}</b> ` +
       `<span class="meta">${esc(a.id)} · ${esc(s.category || "")} · ${esc(s.boundary_source || "")}</span></div>` +
-      `<div class="metrics">` +
+      viewer + `<div class="metrics">` +
       `<div><div class="l">Change</div><div class="v">${esc(haOf(a.site_id))} ha</div></div>` +
       `<div><div class="l">Events</div><div class="v">${esc(r.n_events ?? "—")}</div></div>` +
       `<div><div class="l">Valid pixels</div><div class="v">${r.valid_fraction != null ? Math.round(r.valid_fraction * 100) + "%" : "—"}</div></div>` +
@@ -90,6 +104,17 @@
       `<h3>Source scenes (${used.length})</h3>` +
       (used.map((sc) => `<div class="meta mono">${esc(sc.epoch || "")} · ${esc(String(sc.acquired).slice(0, 10))} · ${esc(sc.product_id)} · cloud ${esc(sc.cloud_cover)}</div>`).join("") || "<p class='meta'>No scene list.</p>") +
       `<div><button id="copybtn">Copy evidence summary</button> <button id="closebtn">Close</button></div></div>`;
+    const sl = document.getElementById("v-s");
+    if (sl) sl.addEventListener("input", () => {
+      const v = sl.value + "%";
+      document.getElementById("v-a").style.clipPath = "inset(0 0 0 " + v + ")";
+      document.getElementById("v-o").style.clipPath = "inset(0 0 0 " + v + ")";
+      document.getElementById("v-d").style.left = v;
+    });
+    const mk = document.getElementById("v-m");
+    if (mk) mk.addEventListener("change", () => {
+      document.getElementById("v-o").style.display = mk.checked ? "" : "none";
+    });
     document.getElementById("closebtn").addEventListener("click", () => { detail.innerHTML = ""; });
     document.getElementById("copybtn").addEventListener("click", async () => {
       const txt = [`Argus alert ${a.id}`, s.name, `Priority: ${a.level}`, `Change: ${haOf(a.site_id)} ha`,
