@@ -43,7 +43,7 @@ html[data-theme="dark"] .drawer-h { border-color: #233031; }
 html[data-theme="dark"] .btn { background: #5cc0c6; color: #07201f; }
 html[data-theme="dark"] .btn:hover { filter: brightness(1.08); }
 html[data-theme="dark"] :where(.border, .border-b, .border-t, .divide-y > *) { border-color: #233031; }
-html[data-theme="dark"] :where(.hover\:bg-neutral-50:hover) { background: rgba(255,255,255,.05); }
+html[data-theme="dark"] .hover\:bg-neutral-50:hover { background: rgba(255,255,255,.06); }
 html[data-theme="dark"] .bg-neutral-100, html[data-theme="dark"] pre.bg-neutral-100 { background: #172122 !important; color: #cfd8d8; }
 html[data-theme="dark"] .text-neutral-900 { color: #e4ecec; }
 html[data-theme="dark"] .text-neutral-700 { color: #b9c4c4; }
@@ -58,6 +58,7 @@ html[data-theme="dark"] .distbar { background: #233031; }
 @media (prefers-color-scheme: dark) {
   html:not([data-theme]) body { background: #0c1213; color: #e4ecec; }
   html:not([data-theme]) .card { background: #121a1b; border-color: #233031; }
+  html:not([data-theme]) .hover\:bg-neutral-50:hover { background: rgba(255,255,255,.06); }
   html:not([data-theme]) .input { background: #172122; border-color: #324244; color: #e4ecec; }
   html:not([data-theme]) .drawer { background: #121a1b; border-color: #324244; }
   html:not([data-theme]) .drawer-h { border-color: #233031; }
