@@ -1,10 +1,11 @@
-export const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
 /** Static-snapshot mode (Netlify mirror): same UI, data from bundled
  *  snapshot.json, all mutations disabled. Enabled at build time via
  *  NEXT_PUBLIC_STATIC_MODE=true. */
 export const STATIC_MODE = process.env.NEXT_PUBLIC_STATIC_MODE === "true";
+
+export const API_BASE = STATIC_MODE
+  ? ""
+  : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 let snapCache: any = null;
 async function snap(): Promise<any> {
