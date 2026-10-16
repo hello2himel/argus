@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { api, levelBadge } from "@/lib/api";
+import BeforeAfter from "@/components/BeforeAfter";
 
 const STEPS = ["Searching STAC catalog for baseline + recent scenes", "Filtering for cloud, shadow and nodata", "Reading 10 m COG pixels, aligning grids", "Calculating NDVI change, grouping patches", "Writing the evidence record"];
 
@@ -62,6 +63,12 @@ export default function Inspect() {
       {out && (
         <div className="card space-y-2">
           <p>Level: <span className={levelBadge(out.level)}>{out.level}</span> · alert {out.alert_id} · {out.result?.synthetic ? "synthetic" : "real pixels"}</p>
+          {(() => {
+            const used: any[] = out.result?.scenes_used || [];
+            const b = (used.find((s: any) => s.epoch === "baseline")?.acquired || "").slice(0, 10);
+            const r = (used.find((s: any) => s.epoch === "recent")?.acquired || "").slice(0, 10);
+            return <BeforeAfter analysisId={out.analysis_id} baseline={b} recent={r} />;
+          })()}
           <p className="text-sm">{out.result?.explanation}</p>
           <pre className="text-xs bg-neutral-100 p-2 rounded overflow-auto">{JSON.stringify({ provider: out.result?.provider, total_ha: out.result?.total_ha, signals: out.result?.signals, scenes_used: out.result?.scenes_used }, null, 2)}</pre>
         </div>
