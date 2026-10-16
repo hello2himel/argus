@@ -98,8 +98,12 @@ def _downscale(rgb: np.ndarray, mask: np.ndarray) -> tuple[np.ndarray, np.ndarra
     return rgb, mask.astype(bool)
 
 
-def build(analysis: dict, out_dir: str | Path) -> dict[str, Any]:
-    """Render before/after/overlay PNGs for a stored analysis record."""
+def build(analysis: dict, out_dir: str | Path, photo_format: str = "png") -> dict[str, Any]:
+    """Render before/after/overlay for a stored analysis record.
+
+    photo_format "jpg" saves smaller JPEGs (static export); "png" keeps
+    lossless (backend cache). Overlay is always PNG (needs alpha).
+    """
     from .geo import bbox_of
     from .vrx1 import indices as IX, change as CH
     result = analysis.get("result") or {}
@@ -147,10 +151,16 @@ def build(analysis: dict, out_dir: str | Path) -> dict[str, Any]:
 
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
-    Image.fromarray(rgb_b).save(out / "before.png")
-    Image.fromarray(rgb_r).save(out / "after.png")
+    ext = ".jpg" if photo_format == "jpg" else ".png"
+    bname, aname = f"before{ext}", f"after{ext}"
+    if ext == ".jpg":
+        Image.fromarray(rgb_b).save(out / bname, quality=72)
+        Image.fromarray(rgb_r).save(out / aname, quality=72)
+    else:
+        Image.fromarray(rgb_b).save(out / bname)
+        Image.fromarray(rgb_r).save(out / aname)
     Image.fromarray(ov).save(out / "overlay.png")
-    return {"before": "before.png", "after": "after.png", "overlay": "overlay.png",
+    return {"before": bname, "after": aname, "overlay": "overlay.png",
             "width": rgb_b.shape[1], "height": rgb_b.shape[0],
             "changed_px": int(mask.sum()),
             "baseline": base_id, "recent": recent_id}

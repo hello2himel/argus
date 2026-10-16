@@ -91,6 +91,15 @@ def _reproject_to(src: np.ndarray, src_meta: dict, ref: np.ndarray, ref_meta: di
     return dst
 
 
+def _f(x):
+    """float() that maps NaN/None -> None so JSON stays valid (JS chokes on NaN)."""
+    try:
+        v = float(x)
+    except (TypeError, ValueError):
+        return None
+    return None if np.isnan(v) else v
+
+
 def pick_scene(observations: list, max_cloud: float = 60.0):
     """Least-cloudy observation that actually carries B04+B08 assets."""
     cands = [o for o in observations
@@ -160,20 +169,21 @@ def _compute_pair(geometry: dict, bbox: tuple, b_item, r_item, params: dict) -> 
     veg_loss = CH.binary_change(d, t["ndvi_drop"], "decrease", ndvi_b, t["ndvi_base_min"])
     veg_loss &= valid
     res = AL.decide(veg_loss, d, vf, 2, t)
+    md = _f(res.max_delta)
 
     px_ha = RES * RES / 10000.0
     return {
         "level": res.level, "total_ha": float(res.total_ha * 1.0),
         "total_m2": float(res.total_m2), "n_events": res.n_events,
-        "max_region_ha": res.max_region_ha, "max_delta": res.max_delta,
+        "max_region_ha": res.max_region_ha, "max_delta": md,
         "valid_fraction": vf, "n_clear": 2, "thresholds": t,
         "explanation": res.explanation,
         "regions": [r.__dict__ for r in res.regions],
         "signals": {
             "veg_loss_px": int(veg_loss.sum()),
-            "mean_d_ndvi": float(np.nanmean(d)) if valid.any() else None,
-            "mean_ndvi_baseline": float(np.nanmean(np.where(valid, ndvi_b, np.nan))),
-            "mean_ndvi_recent": float(np.nanmean(np.where(valid, ndvi_r, np.nan))),
+            "mean_d_ndvi": _f(np.nanmean(d)) if valid.any() else None,
+            "mean_ndvi_baseline": _f(np.nanmean(np.where(valid, ndvi_b, np.nan))),
+            "mean_ndvi_recent": _f(np.nanmean(np.where(valid, ndvi_r, np.nan))),
             "grid_shape": list(ndvi_b.shape),
         },
         "scenes_used": [

@@ -65,7 +65,15 @@ cd backend && python -m pytest tests/ -q   # 11 tests, no network
 ```
 
 ## Docs
-- `docs/ARCHITECTURE.md` · `INSTALL.md` · `ENV.md` · `SCHEMA.md` · `DATA_SOURCES.md` · `DETECTION.md` (VRX-1) · `API.md` · `TESTING.md` · `DEPLOY.md` · `TROUBLESHOOTING.md` · `LIMITATIONS.md`
+- `docs/SITES.md` (49-site BD registry) · `docs/ARCHITECTURE.md` · `INSTALL.md` · `ENV.md` · `SCHEMA.md` · `DATA_SOURCES.md` · `DETECTION.md` (VRX-1) · `API.md` · `TESTING.md` · `DEPLOY.md` · `TROUBLESHOOTING.md` · `LIMITATIONS.md`
+
+## Full BD processing (all 49 sites, real pixels)
+
+```bash
+python3 scripts/seed.py            # import registry (idempotent)
+python3 scripts/process_all.py     # ~20-30 s/site; skips fresh; writes data/processed_cache.json
+python3 scripts/export_static.py --real  # Netlify snapshot + JPEG before/after + overlay
+```
 
 ## Limitations (read before use)
 10 m pixels = 100 m²; reliable only for ≥0.5 ha contiguous change. Clouds/monsoon, seasonality, floods cause false positives. Demo polygons are **not legal cadastre**. GREEN ≠ legal clearance; RED ≠ proven illegality. GRAY means blind — widen windows.

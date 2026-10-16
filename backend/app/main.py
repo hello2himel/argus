@@ -204,8 +204,10 @@ def analysis_preview(aid: str):
         raise HTTPException(422, "synthetic demo analysis has no satellite preview; see written data")
     from . import previews as PV
     out_dir = Path(__file__).resolve().parents[2] / "data" / "previews" / aid
-    if not ((out_dir / "before.png").exists() and (out_dir / "after.png").exists()
-            and (out_dir / "overlay.png").exists()):
+    cached = (((out_dir / "before.png").exists() or (out_dir / "before.jpg").exists())
+              and ((out_dir / "after.png").exists() or (out_dir / "after.jpg").exists())
+              and (out_dir / "overlay.png").exists())
+    if not cached:
         try:
             meta = PV.build(a, out_dir)
         except ValueError as e:
@@ -214,8 +216,10 @@ def analysis_preview(aid: str):
             raise HTTPException(502, f"preview render failed: {str(e)[:300]}")
     else:
         from PIL import Image
-        im = Image.open(out_dir / "before.png")
-        meta = {"before": "before.png", "after": "after.png", "overlay": "overlay.png",
+        first = (out_dir / "before.png") if (out_dir / "before.png").exists() else (out_dir / "before.jpg")
+        second = (out_dir / "after.png") if (out_dir / "after.png").exists() else (out_dir / "after.jpg")
+        im = Image.open(first)
+        meta = {"before": first.name, "after": second.name, "overlay": "overlay.png",
                 "width": im.width, "height": im.height}
     base = f"/previews/{aid}"
     meta.update({"before_url": f"{base}/before.png", "after_url": f"{base}/after.png",
