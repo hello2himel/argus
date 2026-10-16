@@ -107699,5 +107699,19 @@
       "synthetic": false,
       "review_status": "UNVERIFIED"
     }
+  ],
+  "reviews": [
+    {
+      "alert_id": "al-5f8bcb0c",
+      "status": "CONFIRMED_DISTURBANCE",
+      "note": "reviewed from UI",
+      "at": "2026-10-16T19:06:52.127060+00:00"
+    },
+    {
+      "alert_id": "al-5f8bcb0c",
+      "status": "CONFIRMED_DISTURBANCE",
+      "note": "reviewed from UI",
+      "at": "2026-10-16T19:06:52.956561+00:00"
+    }
   ]
 }

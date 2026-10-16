@@ -93,6 +93,7 @@ def main() -> None:
         "sites": sites,
         "analyses": analyses,
         "alerts": alerts,
+        "reviews": store.get("reviews", []),
     }
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
