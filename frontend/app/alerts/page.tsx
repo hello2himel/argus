@@ -1,34 +1,53 @@
 "use client";
 import { useEffect, useState } from "react";
 import { api, levelBadge } from "@/lib/api";
+import AlertDrawer from "@/components/AlertDrawer";
 
 export default function Alerts() {
   const [alerts, setAlerts] = useState<any[]>([]);
-  const [filter, setFilter] = useState("");
-  const load = async () => setAlerts((await api<any>(`/api/alerts${filter ? `?level=${filter}` : ""}`)).alerts);
+  const [sites, setSites] = useState<any[]>([]);
+  const [fPri, setFPri] = useState("all");
+  const [fSite, setFSite] = useState("all");
+  const [fRev, setFRev] = useState("all");
+  const [open, setOpen] = useState<string | null>(null);
+
+  const load = async () => {
+    const [a, s] = await Promise.all([api<any>("/api/alerts"), api<any>("/api/sites")]);
+    setAlerts(a.alerts); setSites(s.sites);
+  };
   useEffect(() => { load(); }, []);
+  const siteName = (id: string) => sites.find((s) => s.id === id)?.name || id;
+  const list = alerts.filter((a) =>
+    (fPri === "all" || a.level === fPri) &&
+    (fSite === "all" || a.site_id === fSite) &&
+    (fRev === "all" || (a.review_status || "UNVERIFIED") === fRev));
+
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold">Alerts</h2>
-      <div className="card flex gap-2 items-center">
-        <select className="input max-w-xs" value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="">All levels</option><option value="RED">RED</option><option value="AMBER">AMBER</option><option value="GREEN">GREEN</option><option value="GRAY">GRAY</option>
-        </select>
-        <button className="btn" onClick={load}>Filter</button>
+      <p className="text-sm text-neutral-600">Algorithm priority and human review status are separate. Nothing here names a person or building as unlawful.</p>
+      <div className="card grid grid-cols-2 md:grid-cols-3 gap-2">
+        <label className="text-sm">Priority<select className="input" value={fPri} onChange={(e) => setFPri(e.target.value)}>
+          <option value="all">All priorities</option><option value="RED">High priority</option><option value="AMBER">Possible disturbance</option><option value="GREEN">No change</option><option value="GRAY">Insufficient data</option></select></label>
+        <label className="text-sm">Site<select className="input" value={fSite} onChange={(e) => setFSite(e.target.value)}>
+          <option value="all">All sites</option>{sites.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
+        <label className="text-sm">Review<select className="input" value={fRev} onChange={(e) => setFRev(e.target.value)}>
+          <option value="all">All statuses</option><option value="UNVERIFIED">Unverified</option><option value="UNDER_REVIEW">Under review</option><option value="CONFIRMED_DISTURBANCE">Confirmed disturbance</option><option value="DISMISSED">Dismissed</option><option value="REQUIRES_FIELD_INSPECTION">Requires field inspection</option></select></label>
       </div>
-      {alerts.map((a) => (
-        <div key={a.id} className="card text-sm space-y-1">
-          <p><b>{a.id}</b> <span className={levelBadge(a.level)}>{a.level}</span> <span className="badge-gray">{a.review_status}</span> {a.synthetic && <span className="badge-gray">synthetic</span>}</p>
-          <p>{a.explanation}</p>
-          <p className="text-neutral-500">{a.total_ha?.toFixed?.(3)} ha · {a.provider} · analysis {a.analysis_id}</p>
-          <div className="flex gap-2">
-            {["UNDER_REVIEW", "CONFIRMED_DISTURBANCE", "DISMISSED", "REQUIRES_FIELD_INSPECTION"].map((s) => (
-              <button key={s} className="text-xs border rounded px-2 py-1" onClick={async () => { await api(`/api/alerts/${a.id}/review`, { method: "PATCH", body: JSON.stringify({ status: s, note: "reviewed from UI" }) }); load(); }}>{s}</button>
-            ))}
-          </div>
-        </div>
-      ))}
-      {alerts.length === 0 && <p className="text-sm text-neutral-500">No alerts.</p>}
+      <div className="card divide-y">
+        <div className="hidden md:grid grid-cols-[130px_1fr_90px_200px_100px] gap-3 px-2 py-1 text-xs uppercase text-neutral-500"><span>Priority</span><span>Site</span><span>Area</span><span>Review</span><span>Created</span></div>
+        {list.map((a) => (
+          <button key={a.id} className="w-full text-left grid md:grid-cols-[130px_1fr_90px_200px_100px] gap-1 md:gap-3 px-2 py-2 hover:bg-neutral-50 text-sm" onClick={() => setOpen(a.id)}>
+            <span className={levelBadge(a.level)}>{a.level}</span>
+            <span><b>{siteName(a.site_id)}</b> <span className="text-neutral-500 font-mono text-xs">{a.id}{a.synthetic ? " · synthetic" : " · real"}</span></span>
+            <span className="font-mono">{a.total_ha != null ? `${Number(a.total_ha).toFixed(1)} ha` : "—"}</span>
+            <span className="badge-gray">{a.review_status}</span>
+            <span className="text-neutral-500 text-xs">{a.created_at?.slice(0, 10)}</span>
+          </button>
+        ))}
+        {list.length === 0 && <p className="text-sm text-neutral-500 p-2">No alerts match these filters.</p>}
+      </div>
+      <AlertDrawer alertId={open} onClose={() => setOpen(null)} onChanged={load} />
     </div>
   );
 }

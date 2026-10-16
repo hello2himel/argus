@@ -57,3 +57,23 @@ def test_invalid_review_rejected():
     a = client.post("/api/analysis?demo=true", json={"site_id": s["id"]}).json()
     r = client.patch(f"/api/alerts/{a['alert_id']}/review", json={"status": "GUILTY"})
     assert r.status_code == 422
+
+
+def test_review_transitions_and_note_required():
+    s = client.post("/api/sites", json={
+        "name": "TransitionTest", "geometry": {"type": "Polygon", "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]}}).json()
+    a = client.post("/api/analysis?demo=true", json={"site_id": s["id"]}).json()
+    aid = a["alert_id"]
+    # illegal jump UNVERIFIED -> DISMISSED
+    r = client.patch(f"/api/alerts/{aid}/review", json={"status": "DISMISSED", "note": "skip"})
+    assert r.status_code == 422
+    # missing note
+    r = client.patch(f"/api/alerts/{aid}/review", json={"status": "UNDER_REVIEW", "note": ""})
+    assert r.status_code == 422
+    # legal step + history recorded
+    r = client.patch(f"/api/alerts/{aid}/review", json={"status": "UNDER_REVIEW", "note": "checking"})
+    assert r.status_code == 200
+    h = client.get(f"/api/alerts/{aid}/history").json()
+    assert len(h["events"]) >= 1 and h["events"][-1]["note"] == "checking"
+    t = client.get("/api/thresholds").json()
+    assert "by_site_type" in t and "defaults" in t

@@ -18,6 +18,22 @@ from .providers.demo import DemoProvider
 
 ALGO_VERSION = "vrx1-1.0.0"
 VALID_REVIEW = {"UNVERIFIED", "UNDER_REVIEW", "CONFIRMED_DISTURBANCE", "DISMISSED", "REQUIRES_FIELD_INSPECTION"}
+# Allowed human review transitions (reference UI pattern: review is a
+# state machine, not free jumps; every change needs a note for the audit trail).
+REVIEW_TRANSITIONS = {
+    "UNVERIFIED": ["UNDER_REVIEW"],
+    "UNDER_REVIEW": ["CONFIRMED_DISTURBANCE", "DISMISSED", "REQUIRES_FIELD_INSPECTION"],
+    "REQUIRES_FIELD_INSPECTION": ["UNDER_REVIEW", "CONFIRMED_DISTURBANCE", "DISMISSED"],
+    "CONFIRMED_DISTURBANCE": ["UNDER_REVIEW"],
+    "DISMISSED": ["UNDER_REVIEW"],
+}
+
+# Starting detection thresholds by site type (tune against reviewed examples).
+THRESHOLD_TABLE = [
+    {"site_type": "Forest and national park", "ndvi_drop": 0.20, "min_patch_ha": 0.5, "min_scenes": 2, "max_cloud": 20},
+    {"site_type": "Wetland and haor", "ndvi_drop": 0.15, "min_patch_ha": 1.0, "min_scenes": 2, "max_cloud": 25},
+    {"site_type": "River protection zone", "ndvi_drop": 0.15, "min_patch_ha": 0.3, "min_scenes": 2, "max_cloud": 25},
+]
 
 app = FastAPI(title="Project Argus", version="1.0.0",
               description="Satellite-based protected-land change screening for Bangladesh. Brain: VRX-1.")
@@ -191,10 +207,33 @@ def review_alert(aid: str, body: ReviewIn):
     st = body.status.upper()
     if st not in VALID_REVIEW:
         raise HTTPException(422, f"status must be one of {sorted(VALID_REVIEW)}")
-    a = get_store().review_alert(aid, st, body.note)
-    if not a:
+    if not body.note or not body.note.strip():
+        raise HTTPException(422, "a reviewer note is required with every status change")
+    cur = get_store().get_alert(aid)
+    if not cur:
         raise HTTPException(404, "alert not found")
+    allowed = REVIEW_TRANSITIONS.get(cur.get("review_status", "UNVERIFIED"), [])
+    if st != cur.get("review_status") and st not in allowed:
+        raise HTTPException(422, f"transition {cur.get('review_status')} -> {st} not allowed; allowed: {allowed}")
+    a = get_store().review_alert(aid, st, body.note.strip())
     return a
+
+
+@app.get("/api/alerts/{aid}/history")
+def alert_history(aid: str):
+    if not get_store().get_alert(aid):
+        raise HTTPException(404, "alert not found")
+    d = get_store()._read()
+    return {"alert_id": aid,
+            "events": [r for r in d.get("reviews", []) if r.get("alert_id") == aid]}
+
+
+@app.get("/api/thresholds")
+def thresholds():
+    from .vrx1 import change as CH
+    return {"algo": ALGO_VERSION, "defaults": dict(CH.DEFAULTS),
+            "by_site_type": THRESHOLD_TABLE,
+            "note": "Starting values. Tune against reviewed examples before relying on them. No illegality probability is calculated."}
 
 
 @app.get("/api/analysis-history")

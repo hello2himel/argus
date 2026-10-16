@@ -1,5 +1,6 @@
 import "./globals.css";
 import Link from "next/link";
+import ThemeRole from "@/components/ThemeRole";
 
 export const metadata = { title: "Project Argus", description: "Satellite screening for protected land — brain VRX-1" };
 
@@ -26,7 +27,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Link key={href} href={href} className="block px-3 py-2 rounded hover:bg-neutral-800 text-sm">{label}</Link>
               ))}
             </nav>
-            <p className="text-[11px] text-neutral-500 pt-6">Demo boundaries only — not legal cadastre. Green ≠ legal clearance.</p>
+            <ThemeRole />
+            <p className="text-[11px] text-neutral-500 pt-4">Demo boundaries only — not legal cadastre. Green ≠ legal clearance.</p>
           </aside>
           <main className="flex-1 p-4 md:p-6 max-w-6xl w-full mx-auto">
             <div className="md:hidden flex gap-2 flex-wrap mb-4">

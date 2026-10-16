@@ -1,8 +1,10 @@
 # Netlify: static quick-viewer only (no backend, no functions).
 [build]
   publish = "site"
-  # Regenerate the precalculated snapshot at deploy time (offline, no keys).
-  command = "python3 scripts/export_static.py"
+  # Serve the committed precalculated snapshot as-is (regenerate locally via
+  # `python3 scripts/export_static.py [--real]` and commit before deploying).
+  # Fallback only generates a synthetic snapshot when none is committed.
+  command = "test -f site/data/snapshot.json && echo keep-committed-snapshot || python3 scripts/export_static.py"
 
 # Local preview of the same artifact Netlify publishes:
 #   python3 scripts/export_static.py && (cd site && python3 -m http.server 8080)

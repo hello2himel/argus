@@ -14,7 +14,6 @@ export default function MapView({ geojson, height = 420 }: { geojson?: any; heig
       style: "https://demotiles.maplibre.org/style.json",
       center: [90.35, 23.83],
       zoom: 7,
-      attributionControl: true,
     });
     map.addControl(new maplibregl.NavigationControl(), "top-right");
     mapRef.current = map;
