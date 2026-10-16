@@ -110,10 +110,29 @@ def pick_scene(observations: list, max_cloud: float = 60.0):
     return sorted(cands, key=lambda o: (o.cloud_cover if o.cloud_cover is not None else 99.0))[0]
 
 
-def ranked_scenes(observations: list, max_cloud: float = 60.0, k: int = 5):
+def _coverage(item_bbox: list | tuple | None, bbox: tuple) -> float:
+    """Fraction of our lon/lat bbox covered by the scene footprint (deg² approx)."""
+    try:
+        if not item_bbox or len(item_bbox) < 4:
+            return 0.0
+        ix0 = max(item_bbox[0], bbox[0]); iy0 = max(item_bbox[1], bbox[1])
+        ix1 = min(item_bbox[2], bbox[2]); iy1 = min(item_bbox[3], bbox[3])
+        inter = max(0.0, ix1 - ix0) * max(0.0, iy1 - iy0)
+        full = max(1e-12, (bbox[2] - bbox[0]) * (bbox[3] - bbox[1]))
+        return inter / full
+    except Exception:
+        return 0.0
+
+
+def ranked_scenes(observations: list, max_cloud: float = 60.0, k: int = 5, bbox: tuple | None = None):
     cands = [o for o in observations
              if "B04" in o.assets and "B08" in o.assets
              and (o.cloud_cover is None or o.cloud_cover <= max_cloud)]
+    if bbox is not None:
+        cands.sort(key=lambda o: (
+            -_coverage(getattr(o, "bbox", None), bbox),
+            o.cloud_cover if o.cloud_cover is not None else 99.0))
+        return cands[:max(1, k)]
     return sorted(cands, key=lambda o: (o.cloud_cover if o.cloud_cover is not None else 99.0))[:max(1, k)]
 
 
@@ -125,14 +144,14 @@ def compute_real_change(geometry: dict, baseline_obs: list, recent_obs: list,
     params = params or {}
     max_cloud = float(params.get("max_cloud", 60.0))
 
-    b_cands = ranked_scenes(baseline_obs, max_cloud)
-    r_cands = ranked_scenes(recent_obs, max_cloud)
+    bbox = bbox_of(geometry)
+    b_cands = ranked_scenes(baseline_obs, max_cloud, bbox=bbox)
+    r_cands = ranked_scenes(recent_obs, max_cloud, bbox=bbox)
     if not b_cands or not r_cands:
         raise RuntimeError(
             f"no readable scenes (need B04+B08, cloud<={max_cloud}): "
             f"baseline={len(baseline_obs)} recent={len(recent_obs)}")
 
-    bbox = bbox_of(geometry)
     last_err = "unknown"
     for b_item in b_cands:
         for r_item in r_cands:
@@ -146,7 +165,18 @@ def compute_real_change(geometry: dict, baseline_obs: list, recent_obs: list,
 
 def _compute_pair(geometry: dict, bbox: tuple, b_item, r_item, params: dict) -> dict[str, Any]:
     from .vrx1 import indices as IX, change as CH, alerts as AL
+    import math
     b4, b4m = _read_clipped(b_item.assets["B04"], bbox)
+    # reject sliver reads: scene must cover most of the AOI, else a giant site
+    # gets judged on a strip. Pair loop then tries the next candidate.
+    lat = (bbox[1] + bbox[3]) / 2
+    exp_w = (bbox[2] - bbox[0]) * 111320.0 * max(0.2, math.cos(math.radians(lat))) / 10.0
+    exp_h = (bbox[3] - bbox[1]) * 111320.0 / 10.0
+    # reads are downsampled to max 900px on the long side — compare like with like
+    sc = min(1.0, 900.0 / max(exp_w, exp_h))
+    got = b4.shape[1] * b4.shape[0] / max(1.0, exp_w * exp_h * sc * sc)
+    if got < 0.5:
+        raise RuntimeError(f"partial scene coverage ({got:.2f}<0.50) — trying next pair")
     b8, _ = _read_clipped(b_item.assets["B08"], bbox)
     r4, _ = _read_clipped(r_item.assets["B04"], bbox)
     r8, r8m = _read_clipped(r_item.assets["B08"], bbox)
