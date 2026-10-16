@@ -29,9 +29,23 @@ export default function Overview() {
   const red = openAlerts.filter((a) => a.level === "RED").length;
   const gray = alerts.filter((a) => a.level === "GRAY").length;
   const siteName = (id: string) => sites.find((s) => s.id === id)?.name || id || "manual";
+  const alertFor = (siteId: string) => [...alerts].reverse().find((a) => a.site_id === siteId);
+  const geojson = {
+    type: "FeatureCollection",
+    features: sites.map((s) => {
+      const a = alertFor(s.id);
+      return {
+        type: "Feature",
+        properties: {
+          siteId: s.id, name: s.name, category: s.category,
+          level: a?.level, area: a?.total_ha != null ? Number(a.total_ha).toFixed(1) : undefined,
+        },
+        geometry: s.geometry,
+      };
+    }),
+  };
   const needs = [...openAlerts].sort((a, b) => (a.level === "RED" ? 0 : 1) - (b.level === "RED" ? 0 : 1)).slice(0, 4);
   const dist = ["RED", "AMBER", "GREEN", "GRAY"].map((l) => ({ l, n: alerts.filter((a) => a.level === l).length }));
-  const geojson = { type: "FeatureCollection", features: sites.map((s) => ({ type: "Feature", properties: { name: s.name }, geometry: s.geometry })) };
 
   return (
     <div className="space-y-4">
@@ -53,7 +67,10 @@ export default function Overview() {
               <label><input type="checkbox" checked={layers.alerts} onChange={(e) => setLayers({ ...layers, alerts: e.target.checked })} /> Alerts</label>
             </div>
           </div>
-          <MapView geojson={layers.bounds ? geojson : { type: "FeatureCollection", features: [] }} />
+          <MapView
+            geojson={layers.bounds ? geojson : { type: "FeatureCollection", features: [] }}
+            onSiteClick={(siteId) => { const a = alertFor(siteId); if (a) setOpen(a.id); }}
+          />
           <p className="text-xs text-neutral-500 mt-1">● High priority ● Possible disturbance ● Insufficient — schematic polygons, not survey boundaries.</p>
         </div>
         <div className="space-y-4">
