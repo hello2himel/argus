@@ -11,7 +11,19 @@ export default function MapView({ geojson, height = 420 }: { geojson?: any; heig
     if (!ref.current || mapRef.current) return;
     const map = new maplibregl.Map({
       container: ref.current,
-      style: "https://demotiles.maplibre.org/style.json",
+      // Esri World Imagery: free, keyless satellite basemap (verified reachable).
+      style: {
+        version: 8,
+        sources: {
+          "esri-sat": {
+            type: "raster",
+            tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+            tileSize: 256,
+            attribution: "Imagery © Esri, Maxar, Earthstar Geographics",
+          },
+        },
+        layers: [{ id: "sat", type: "raster", source: "esri-sat" }],
+      } as any,
       center: [90.35, 23.83],
       zoom: 7,
     });
@@ -39,7 +51,7 @@ export default function MapView({ geojson, height = 420 }: { geojson?: any; heig
   return (
     <div>
       <div ref={ref} style={{ height }} className="rounded-xl overflow-hidden border" />
-      <p className="text-xs text-neutral-500 mt-1">Basemap © OpenStreetMap contributors © CARTO. Site polygons: demo-only, not legal cadastre.</p>
+      <p className="text-xs text-neutral-500 mt-1">Satellite basemap © Esri, Maxar, Earthstar Geographics. Site polygons: demo-only, not legal cadastre.</p>
     </div>
   );
 }
