@@ -1,0 +1,14 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+pystac-client>=0.7
+planetary-computer>=1.0
+rasterio>=1.3.8
+rioxarray>=0.15
+xarray>=2024.2
+numpy>=1.26
+shapely>=2.0
+scikit-image>=0.22
+scipy>=1.12
+requests>=2.31
+python-multipart>=0.0.9

@@ -1,0 +1,8 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type": "Feature", "properties": {"name": "Lawachara NP Edge (demo)"}, "geometry": {"type": "Polygon", "coordinates": [[[91.754, 24.29], [91.814, 24.29], [91.814, 24.35], [91.754, 24.35], [91.754, 24.29]]]}},
+    {"type": "Feature", "properties": {"name": "Chunati WS Corridor (demo)"}, "geometry": {"type": "Polygon", "coordinates": [[[91.98, 21.92], [92.08, 21.92], [92.08, 22.02], [91.98, 22.02], [91.98, 21.92]]]}},
+    {"type": "Feature", "properties": {"name": "Turag Buffer Ashulia (demo)"}, "geometry": {"type": "Polygon", "coordinates": [[[90.305, 23.79], [90.385, 23.79], [90.385, 23.87], [90.305, 23.87], [90.305, 23.79]]]}}
+  ]
+}

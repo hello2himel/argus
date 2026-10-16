@@ -1,0 +1,202 @@
+"""Project Argus API — FastAPI. VRX-1 brain served over REST."""
+from __future__ import annotations
+
+import os
+import uuid
+from datetime import datetime, timezone
+from typing import Any
+
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+
+from .store import get_store, db_kind
+from . import geo as G
+from . import analysis as AN
+from .providers.planetary import PlanetaryProvider
+from .providers.demo import DemoProvider
+
+ALGO_VERSION = "vrx1-1.0.0"
+VALID_REVIEW = {"UNVERIFIED", "UNDER_REVIEW", "CONFIRMED_DISTURBANCE", "DISMISSED", "REQUIRES_FIELD_INSPECTION"}
+
+app = FastAPI(title="Project Argus", version="1.0.0",
+              description="Satellite-based protected-land change screening for Bangladesh. Brain: VRX-1.")
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+
+# ---------- schemas ----------
+class SiteIn(BaseModel):
+    name: str = Field(min_length=2, max_length=200)
+    category: str = "protected"
+    geometry: dict
+    boundary_source: str = "manual-demo (NOT legal cadastre)"
+    legal_reference: str = ""
+    buffer_m: float = 0
+    priority: str = "medium"
+    notes: str = ""
+
+
+class AnalysisIn(BaseModel):
+    site_id: str | None = None
+    geometry: dict | None = None
+    lon: float | None = None
+    lat: float | None = None
+    radius_m: float = 1000
+    baseline_start: str = "2024-11-01"
+    baseline_end: str = "2025-02-28"
+    recent_start: str = "2025-11-01"
+    recent_end: str = "2026-02-28"
+    max_cloud: float = 30.0
+    min_change_m2: float = 5000
+    sensitivity: str = "medium"
+
+
+class ReviewIn(BaseModel):
+    status: str
+    note: str = ""
+
+
+def _geom_from_analysis(a: AnalysisIn) -> dict:
+    if a.geometry:
+        return G.validate_geojson_polygon(a.geometry)
+    if a.site_id:
+        s = get_store().get_site(a.site_id)
+        if not s:
+            raise HTTPException(404, "site not found")
+        return s["geometry"]
+    if a.lon is not None and a.lat is not None:
+        lo, la = G.validate_lon_lat(a.lon, a.lat)
+        return G.buffer_point(lo, la, a.radius_m)
+    raise HTTPException(422, "provide geometry, site_id, or lon+lat")
+
+
+# ---------- routes ----------
+@app.get("/api/health")
+def health():
+    return {"ok": True, "service": "argus-api", "algo": ALGO_VERSION,
+            "db": db_kind(), "time": datetime.now(timezone.utc).isoformat()}
+
+
+@app.get("/api/data-sources/status")
+def data_sources():
+    pc = PlanetaryProvider().status()
+    demo = DemoProvider().status()
+    return {"sources": [pc, demo], "primary": "planetary-computer (Sentinel-2 L2A)",
+            "note": "STAC search needs no key; blob reads auto-SAS. Demo provider is synthetic."}
+
+
+@app.get("/api/sites")
+def list_sites():
+    return {"sites": get_store().list_sites()}
+
+
+@app.post("/api/sites", status_code=201)
+def create_site(body: SiteIn):
+    geom = G.validate_geojson_polygon(body.geometry)
+    return get_store().add_site({
+        "name": body.name, "category": body.category, "geometry": geom,
+        "boundary_source": body.boundary_source, "legal_reference": body.legal_reference,
+        "buffer_m": body.buffer_m, "priority": body.priority, "notes": body.notes,
+        "verification": "UNVERIFIED-DEMO" if "demo" in body.boundary_source.lower() else "UNVERIFIED",
+    })
+
+
+@app.get("/api/sites/{sid}")
+def get_site(sid: str):
+    s = get_store().get_site(sid)
+    if not s:
+        raise HTTPException(404, "site not found")
+    return s
+
+
+@app.delete("/api/sites/{sid}")
+def delete_site(sid: str):
+    if not get_store().delete_site(sid):
+        raise HTTPException(404, "site not found")
+    return {"deleted": sid}
+
+
+@app.get("/api/map/monitoring-sites")
+def map_sites():
+    feats = [{"type": "Feature", "properties": {"id": s["id"], "name": s.get("name")},
+              "geometry": s["geometry"]} for s in get_store().list_sites()]
+    return {"type": "FeatureCollection", "features": feats}
+
+
+@app.post("/api/analysis", status_code=202)
+def start_analysis(body: AnalysisIn, demo: bool = Query(False)):
+    geom = _geom_from_analysis(body)
+    aid = f"an-{uuid.uuid4().hex[:8]}"
+    store = get_store()
+    rec = store.add_analysis({"id": aid, "site_id": body.site_id, "geometry": geom,
+                              "params": body.model_dump(), "status": "running",
+                              "algo": ALGO_VERSION, "demo": demo})
+    try:
+        result = AN.run_analysis(
+            geom, body.baseline_start, body.baseline_end,
+            body.recent_start, body.recent_end,
+            {"max_cloud": body.max_cloud, "min_change_m2": body.min_change_m2,
+             "sensitivity": body.sensitivity}, use_demo=demo)
+    except ValueError as e:
+        store.update_analysis(aid, {"status": "failed", "error": str(e)})
+        raise HTTPException(422, str(e))
+    store.update_analysis(aid, {"status": "done", "result": result})
+    # auto-create alert record for AMBER/RED (and keep GRAY/GREEN traceable)
+    alert = store.add_alert({"analysis_id": aid, "site_id": body.site_id,
+                             "level": result["level"], "total_ha": result.get("total_ha", 0),
+                             "explanation": result.get("explanation", ""),
+                             "provider": result.get("provider", ""),
+                             "synthetic": result.get("synthetic", False),
+                             "geometry": geom})
+    return {"analysis_id": aid, "status": "done", "level": result["level"],
+            "alert_id": alert["id"], "result": result}
+
+
+@app.get("/api/analysis/{aid}")
+def get_analysis(aid: str):
+    a = get_store().get_analysis(aid)
+    if not a:
+        raise HTTPException(404, "analysis not found")
+    return a
+
+
+@app.get("/api/analysis/{aid}/results")
+def analysis_results(aid: str):
+    a = get_store().get_analysis(aid)
+    if not a:
+        raise HTTPException(404, "analysis not found")
+    return {"analysis_id": aid, "result": a.get("result")}
+
+
+@app.get("/api/alerts")
+def list_alerts(level: str | None = None, site_id: str | None = None):
+    als = get_store().list_alerts()
+    if level:
+        als = [a for a in als if a.get("level") == level.upper()]
+    if site_id:
+        als = [a for a in als if a.get("site_id") == site_id]
+    return {"alerts": als}
+
+
+@app.get("/api/alerts/{aid}")
+def get_alert(aid: str):
+    a = get_store().get_alert(aid)
+    if not a:
+        raise HTTPException(404, "alert not found")
+    return a
+
+
+@app.patch("/api/alerts/{aid}/review")
+def review_alert(aid: str, body: ReviewIn):
+    st = body.status.upper()
+    if st not in VALID_REVIEW:
+        raise HTTPException(422, f"status must be one of {sorted(VALID_REVIEW)}")
+    a = get_store().review_alert(aid, st, body.note)
+    if not a:
+        raise HTTPException(404, "alert not found")
+    return a
+
+
+@app.get("/api/analysis-history")
+def history(limit: int = 50):
+    return {"analyses": get_store().list_analyses(limit)}
