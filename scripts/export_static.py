@@ -1,11 +1,11 @@
 """Export precalculated snapshot for the Netlify static viewer.
 
 Runs offline VRX-1 DEMO math (synthetic, clearly labeled) for each seed site in
-data/demo.json and writes site/data/snapshot.json. The static site reads ONLY
+data/demo.json and writes frontend/public/data/snapshot.json. The static mirror reads ONLY
 this file — no backend, no API keys, no runtime analysis.
 
 Usage:
-    python3 scripts/export_static.py [--data data/demo.json] [--out site/data/snapshot.json] [--real]
+    python3 scripts/export_static.py [--data data/demo.json] [--out frontend/public/data/snapshot.json] [--real]
 
     --real runs REAL Sentinel-2 pixel analyses (slow, needs internet).
     Default is synthetic demo math, clearly labeled.
@@ -40,7 +40,7 @@ SITE_PARAMS = {
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", default=str(REPO / "data" / "demo.json"))
-    ap.add_argument("--out", default=str(REPO / "site" / "data" / "snapshot.json"))
+    ap.add_argument("--out", default=str(REPO / "frontend" / "public" / "data" / "snapshot.json"))
     ap.add_argument("--real", action="store_true",
                     help="REAL Sentinel-2 pixels (slow, internet). Default: synthetic demo.")
     args = ap.parse_args()
@@ -99,7 +99,7 @@ def main() -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     if args.real:
         from app import previews as PV
-        pv_root = REPO / "site" / "data" / "previews"
+        pv_root = REPO / "frontend" / "public" / "data" / "previews"
         for an in analyses:
             try:
                 site_geom = next(s["geometry"] for s in sites if s["id"] == an["site_id"])

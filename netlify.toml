@@ -1,10 +1,15 @@
-# Netlify: static quick-viewer only (no backend, no functions).
+# Netlify: the SAME Next.js UI as the full stack, exported static.
+# Special rules for this mirror are compiled in at build time
+# (NEXT_PUBLIC_STATIC_MODE=true): snapshot data instead of the API,
+# no manual inspection, fixed viewer role, no review/site writes.
 [build]
-  publish = "site"
-  # Serve the committed precalculated snapshot as-is (regenerate locally via
-  # `python3 scripts/export_static.py [--real]` and commit before deploying).
-  # Fallback only generates a synthetic snapshot when none is committed.
-  command = "test -f site/data/snapshot.json && echo keep-committed-snapshot || python3 scripts/export_static.py"
+  base = "frontend"
+  publish = "out"
+  command = "npm ci && NEXT_STATIC_EXPORT=1 NEXT_PUBLIC_STATIC_MODE=true npm run build"
 
-# Local preview of the same artifact Netlify publishes:
-#   python3 scripts/export_static.py && (cd site && python3 -m http.server 8080)
+# Snapshot + previews are committed under frontend/public/data by
+# `python3 scripts/export_static.py --real` (run before deploying).
+[[redirects]]
+  from = "/api/*"
+  to = "/404.html"
+  status = 404

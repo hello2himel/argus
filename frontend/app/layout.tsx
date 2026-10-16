@@ -1,10 +1,11 @@
 import "./globals.css";
 import Link from "next/link";
 import ThemeRole from "@/components/ThemeRole";
+import { STATIC_MODE } from "@/lib/api";
 
 export const metadata = { title: "Project Argus", description: "Satellite screening for protected land — brain VRX-1" };
 
-const NAV = [
+const NAV_ALL = [
   ["Overview", "/"],
   ["Protected Areas", "/protected-areas"],
   ["Manual Inspection", "/inspect"],
@@ -13,6 +14,8 @@ const NAV = [
   ["Data Sources", "/data-sources"],
   ["Settings", "/settings"],
 ];
+// Static mirror rule: same pages minus Manual Inspection (it takes input).
+const NAV = STATIC_MODE ? NAV_ALL.filter(([_, href]) => href !== "/inspect") : NAV_ALL;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -28,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               ))}
             </nav>
             <ThemeRole />
-            <p className="text-[11px] text-neutral-500 pt-4">Demo boundaries only — not legal cadastre. Green ≠ legal clearance.</p>
+            <p className="text-[11px] text-neutral-500 pt-4">Demo boundaries only — not legal cadastre. Green ≠ legal clearance.{STATIC_MODE ? " Snapshot mirror: read-only." : ""}</p>
           </aside>
           <main className="flex-1 p-4 md:p-6 max-w-6xl w-full mx-auto">
             <div className="md:hidden flex gap-2 flex-wrap mb-4">

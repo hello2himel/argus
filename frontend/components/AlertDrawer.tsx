@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { canReview } from "@/lib/role";
 import { siteCenter } from "@/lib/maps";
+import { STATIC_MODE } from "@/lib/api";
 import OpenInMaps from "@/components/OpenInMaps";
 import BeforeAfter from "@/components/BeforeAfter";
 
@@ -133,6 +134,7 @@ export default function AlertDrawer({ alertId, onClose, onChanged }: { alertId: 
               <section><h3 className="font-semibold text-sm mb-1">Why this priority</h3>
                 <p className="card text-sm">{detail?.explanation || alert.explanation} No confidence percentage is calculated; priority comes from fixed area/persistence rules (see Settings).</p>
               </section>
+              {!STATIC_MODE ? (
               <section><h3 className="font-semibold text-sm mb-1">Human review</h3>
                 <div className="card space-y-2">
                   <label className="text-sm">New status
@@ -148,6 +150,14 @@ export default function AlertDrawer({ alertId, onClose, onChanged }: { alertId: 
                   </div>
                 </div>
               </section>
+              ) : (
+              <section><h3 className="font-semibold text-sm mb-1">Human review</h3>
+                <div className="card space-y-2">
+                  <p className="text-sm text-neutral-500">Read-only snapshot — reviews change in the full app.</p>
+                  <button className="btn" onClick={copy}>Copy evidence summary</button>
+                </div>
+              </section>
+              )}
               <section><h3 className="font-semibold text-sm mb-1">Audit history ({history.length})</h3>
                 {history.length === 0 && <p className="text-sm text-neutral-500">No review events yet.</p>}
                 {history.slice().reverse().map((e: any, i: number) => (

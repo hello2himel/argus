@@ -1,7 +1,11 @@
 // Role is a demo switch (not auth). Reviewer+ can review; admin can register sites / edit thresholds.
+// In the static snapshot mirror the role is fixed to viewer: zero inputs.
+import { STATIC_MODE } from "@/lib/api";
+
 export type Role = "viewer" | "reviewer" | "admin";
 
 export function getRole(): Role {
+  if (STATIC_MODE) return "viewer";
   if (typeof window === "undefined") return "reviewer";
   const r = window.localStorage.getItem("argus-role");
   return r === "admin" || r === "viewer" || r === "reviewer" ? r : "reviewer";

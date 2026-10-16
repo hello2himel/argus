@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { api, levelBadge } from "@/lib/api";
+import { api, levelBadge, STATIC_MODE } from "@/lib/api";
 import BeforeAfter from "@/components/BeforeAfter";
 
 const STEPS = ["Searching STAC catalog for baseline + recent scenes", "Filtering for cloud, shadow and nodata", "Reading 10 m COG pixels, aligning grids", "Calculating NDVI change, grouping patches", "Writing the evidence record"];
@@ -21,6 +21,15 @@ export default function Inspect() {
 
   const la = parseFloat(lat), lo = parseFloat(lon);
   const outside = isFinite(la) && isFinite(lo) && (la < 20.5 || la > 26.7 || lo < 88 || lo > 92.8);
+
+  if (STATIC_MODE) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">Manual Inspection</h2>
+        <div className="card"><p className="text-sm">Disabled in the read-only snapshot mirror — running a new analysis takes input. Use the full app to inspect a location.</p></div>
+      </div>
+    );
+  }
 
   const run = async () => {
     const e: Record<string, string> = {};

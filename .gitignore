@@ -7,3 +7,4 @@ node_modules/
 .venv/
 frontend/tsconfig.tsbuildinfo
 data/previews/
+frontend/out/
